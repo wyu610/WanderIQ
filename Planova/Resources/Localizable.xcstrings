@@ -1,0 +1,32 @@
+{
+  "sourceLanguage" : "en",
+  "version" : "1.0",
+  "strings" : {
+    "Trips" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "行程" } } } },
+    "New Trip" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新建行程" } } } },
+    "Name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "名称" } } } },
+    "Start" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始日期" } } } },
+    "End" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束日期" } } } },
+    "Save" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } } } },
+    "Cancel" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } } } },
+    "Delete" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除" } } } },
+    "Edit" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑" } } } },
+    "Prep" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "行前准备" } } } },
+    "Itinerary" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每日行程" } } } },
+    "Packing" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "出门清单" } } } },
+    "Bookings" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关键预订" } } } },
+    "Hotels" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "住宿" } } } },
+    "Documents" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "证件 · 出行准备" } } } },
+    "Add Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加项目" } } } },
+    "New Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新增项目" } } } },
+    "Edit Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑项目" } } } },
+    "Notes" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "备注" } } } },
+    "Owner" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负责人" } } } },
+    "Day" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日期" } } } },
+    "Time" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "时间" } } } },
+    "Reminder" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提醒" } } } },
+    "Reset packing list" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置每日清单" } } } },
+    "Today" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } } } },
+    "Trip not found" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到行程" } } } }
+  }
+}
