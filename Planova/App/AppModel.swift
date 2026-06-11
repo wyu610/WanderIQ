@@ -1,0 +1,87 @@
+import Foundation
+import Observation
+import PlanovaKit
+
+@MainActor
+@Observable
+final class AppModel {
+    let store: TripStore
+    private let repository: TripRepository
+    @ObservationIgnored private var saveTasks: [UUID: Task<Void, Never>] = [:]
+
+    init() {
+        let dir = URL.applicationSupportDirectory.appendingPathComponent("trips")
+        self.repository = TripRepository(directory: dir)
+        let trips = (try? repository.loadAll()) ?? []
+        self.store = TripStore(trips: trips)
+        seedIfNeeded()
+        store.onChange = { [weak self] trip in self?.scheduleSave(trip) }
+    }
+
+    // MARK: - Intents (views call these, not the store directly)
+
+    func addTrip(_ trip: Trip) {
+        store.addTrip(trip)
+        try? repository.save(trip)
+    }
+
+    func deleteTrip(id: UUID) {
+        store.deleteTrip(id: id)
+        try? repository.delete(id: id)
+        refreshReminders()
+    }
+
+    func toggle(itemID: UUID, in tripID: UUID) {
+        store.toggle(itemID: itemID, in: tripID)
+        refreshReminders()
+    }
+
+    func addItem(_ item: ChecklistItem, to tripID: UUID) {
+        store.addItem(item, to: tripID)
+        refreshReminders()
+    }
+
+    func updateItem(_ item: ChecklistItem, in tripID: UUID) {
+        store.updateItem(item, in: tripID)
+        refreshReminders()
+    }
+
+    func deleteItem(id: UUID, in tripID: UUID) {
+        store.deleteItem(id: id, in: tripID)
+        refreshReminders()
+    }
+
+    func resetPacking(in tripID: UUID) {
+        store.resetPacking(in: tripID)
+    }
+
+    // MARK: - Persistence (debounced, mirrors the PWA's 150 ms save)
+
+    private func scheduleSave(_ trip: Trip) {
+        saveTasks[trip.id]?.cancel()
+        saveTasks[trip.id] = Task { [repository] in
+            try? await Task.sleep(for: .milliseconds(150))
+            guard !Task.isCancelled else { return }
+            try? repository.save(trip)
+        }
+    }
+
+    // MARK: - Seed
+
+    private func seedIfNeeded() {
+        let key = "didSeedChinaTrip2026"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        if let trip = try? SeedLoader.loadChinaTrip2026() {
+            store.addTrip(trip)
+            try? repository.save(trip)
+        }
+        UserDefaults.standard.set(true, forKey: key)
+    }
+
+    // MARK: - Reminders (ReminderScheduler stub below is replaced in Task 9)
+
+    func refreshReminders() {
+        let trips = store.trips
+        Task { await ReminderScheduler.refresh(trips: trips) }
+    }
+}

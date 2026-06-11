@@ -1,0 +1,25 @@
+name: Planova
+options:
+  bundleIdPrefix: com.planova
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  PlanovaKit:
+    path: PlanovaKit
+targets:
+  Planova:
+    type: application
+    platform: iOS
+    sources: [Planova]
+    dependencies:
+      - package: PlanovaKit
+    scheme: {}
+    settings:
+      base:
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.10"
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_UILaunchScreen_Generation: true
+        INFOPLIST_KEY_CFBundleDisplayName: Planova
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
