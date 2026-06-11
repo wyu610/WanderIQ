@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>2026 暑假中国行 · 行程清单</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#FAF7F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="中国行清单">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7F1;
+    --card:#FFFFFF;
+    --ink:#1B2330;
+    --ink-soft:#5A6472;
+    --ink-faint:#909AA6;
+    --rail:#136F8B;
+    --rail-deep:#0E5167;
+    --rail-tint:#E7F1F4;
+    --amber:#B5781A;
+    --amber-tint:#FBF1DC;
+    --alert:#C1452F;
+    --alert-tint:#FBE6E1;
+    --done:#2F7D5F;
+    --done-tint:#E4F1EB;
+    --line:#EAE3D6;
+    --shadow:0 1px 2px rgba(27,35,48,.04), 0 6px 20px rgba(27,35,48,.06);
+    --disp:'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --body:-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--body);
+    line-height:1.45; -webkit-font-smoothing:antialiased; font-size:16px;
+    overflow-x:hidden; overscroll-behavior-y:none;
+  }
+  .wrap{max-width:680px; margin:0 auto; padding:0;}
+
+  /* ---------- Header ---------- */
+  header{
+    padding:22px 20px 16px; padding-top:calc(22px + env(safe-area-inset-top)); position:relative; overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 90% -10%, rgba(19,111,139,.10), transparent 60%),
+      linear-gradient(180deg,#FFFFFF, #FCFAF5);
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{font-family:var(--disp); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--rail); font-weight:600;}
+  h1{margin:5px 0 12px; font-size:23px; font-weight:700; letter-spacing:-.01em;}
+  .route{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-weight:600; font-size:15.5px;}
+  .route .city{background:var(--rail-tint); color:var(--rail-deep); padding:4px 11px; border-radius:999px;}
+  .route .leg{font-family:var(--disp); color:var(--ink-faint); font-size:14px;}
+  .meta{display:flex; gap:6px 14px; flex-wrap:wrap; color:var(--ink-soft); font-size:13px; margin-top:11px;}
+  .meta b{color:var(--ink); font-weight:600;}
+
+  .statbar{display:flex; gap:10px; margin-top:16px;}
+  .stat{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:11px 13px; box-shadow:var(--shadow);}
+  .stat .k{font-size:11px; letter-spacing:.06em; color:var(--ink-faint); text-transform:uppercase; font-family:var(--disp); font-weight:500;}
+  .stat .v{font-family:var(--disp); font-weight:700; font-size:24px; line-height:1.1; margin-top:3px;}
+  .stat .v small{font-size:13px; font-weight:500; color:var(--ink-soft);}
+  .pbar{height:7px; border-radius:99px; background:var(--line); margin-top:9px; overflow:hidden;}
+  .pbar > i{display:block; height:100%; background:linear-gradient(90deg,var(--done),#3f9c77); border-radius:99px; transition:width .35s ease;}
+
+  /* ---------- Bottom nav (mobile) ---------- */
+  .tabs{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    display:flex; gap:4px; padding:7px 10px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.94); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    border-top:1px solid var(--line); box-shadow:0 -4px 24px rgba(27,35,48,.07);
+  }
+  .tab{
+    flex:1; appearance:none; border:0; background:none; cursor:pointer; font-family:var(--body);
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:6px 4px 5px; color:var(--ink-faint); position:relative; border-radius:13px;
+    transition:color .15s;
+  }
+  .tab:active{background:#F4F0E8;}
+  .tab::before{content:""; position:absolute; top:0; left:50%; transform:translateX(-50%) scaleX(0);
+    width:26px; height:3px; background:var(--rail); border-radius:0 0 3px 3px; transition:transform .2s;}
+  .tab.active::before{transform:translateX(-50%) scaleX(1);}
+  .icwrap{position:relative; display:block; line-height:0;}
+  .tab .ic{width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+  .tab .tlabel{font-size:11px; font-weight:600; letter-spacing:.02em;}
+  .tab.active{color:var(--rail);}
+  .badge{position:absolute; top:-6px; left:13px; min-width:17px; height:17px; padding:0 4px;
+    font-family:var(--disp); font-size:10.5px; font-weight:700; line-height:17px; text-align:center;
+    border-radius:99px; background:var(--ink-soft); color:#fff; box-shadow:0 0 0 2px var(--paper);}
+  .badge:empty{display:none;}
+  .badge.alert{background:var(--alert);}
+
+  .panel{display:none; padding:18px 16px calc(136px + env(safe-area-inset-bottom));}
+  .panel.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  /* ---------- Small phones ---------- */
+  @media (max-width:380px){
+    body{font-size:15.5px;}
+    header{padding-left:16px; padding-right:16px;}
+    h1{font-size:21px;}
+    .route{font-size:14.5px; gap:6px;}
+    .route .city{padding:4px 9px;}
+    .stat .v{font-size:21px;}
+    .panel{padding-left:13px; padding-right:13px;}
+    .row{padding:13px 13px;}
+    .day-h{padding:13px 12px; gap:11px;}
+    .date-blk{width:42px;}
+    .day-info .t{font-size:14.5px;}
+    .tab .tlabel{font-size:10px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001s !important; transition-duration:.001s !important;}
+  }
+
+  /* ---------- Edit mode ---------- */
+  .edit-handle{display:none; flex:0 0 auto; align-self:center; width:30px; height:30px; border-radius:9px;
+    align-items:center; justify-content:center; color:var(--rail); background:var(--rail-tint); font-size:14px; margin-left:2px;}
+  body.editing .edit-handle{display:flex;}
+  body.editing .row .box{opacity:.3;}
+  body.editing .row.done .label{text-decoration:none; color:var(--ink);}
+  .add-row{display:none; align-items:center; gap:9px; padding:13px 15px; color:var(--rail); font-weight:600;
+    font-size:14px; cursor:pointer; border-top:1px dashed var(--line);}
+  body.editing .add-row{display:flex;}
+  .add-row .plus{width:22px; height:22px; border-radius:7px; border:2px dashed var(--rail);
+    display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1;}
+  .add-row:active{background:#F4F0E8;}
+  .edit-hint{display:none; font-size:12.5px; color:var(--amber); background:var(--amber-tint);
+    border-radius:11px; padding:9px 13px; margin:0 2px 14px; line-height:1.45;}
+  body.editing .edit-hint{display:block;}
+
+  /* ---------- FAB ---------- */
+  .fab{position:fixed; right:16px; z-index:55; bottom:calc(70px + env(safe-area-inset-bottom));
+    display:flex; align-items:center; gap:7px; height:46px; padding:0 17px; border:0; border-radius:99px;
+    background:var(--rail); color:#fff; font-family:var(--body); font-weight:600; font-size:14px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(19,111,139,.42); transition:background .15s;}
+  .fab .fic{font-size:15px; line-height:1;}
+  body.editing .fab{background:var(--done); box-shadow:0 6px 18px rgba(47,125,95,.42);}
+
+  /* ---------- Bottom sheet editor ---------- */
+  .sheet-wrap{position:fixed; inset:0; z-index:80; display:flex; align-items:flex-end; justify-content:center;}
+  .sheet-wrap[hidden]{display:none;}
+  .sheet-backdrop{position:absolute; inset:0; background:rgba(20,26,36,.45); animation:fade .2s;}
+  .sheet{position:relative; width:100%; max-width:680px; background:var(--card); border-radius:22px 22px 0 0;
+    padding:14px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow:0 -10px 40px rgba(0,0,0,.2);
+    animation:sheetUp .26s cubic-bezier(.2,.85,.25,1);}
+  @keyframes sheetUp{from{transform:translateY(100%);} to{transform:none;}}
+  .sheet .grip{width:38px; height:4px; border-radius:99px; background:var(--line); margin:0 auto 14px;}
+  .sheet-title{font-size:16px; font-weight:700; margin-bottom:13px;}
+  .sheet textarea{width:100%; border:1.5px solid var(--line); border-radius:13px; padding:12px 13px;
+    font-family:var(--body); font-size:16px; color:var(--ink); resize:none; box-sizing:border-box; line-height:1.45;}
+  .sheet textarea:focus{outline:none; border-color:var(--rail);}
+  .sheet-field{margin-top:14px;}
+  .sheet-field > label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:7px; letter-spacing:.03em;}
+  .sheet-field input[type=time], .cfg-input{width:100%; border:1.5px solid var(--line); border-radius:13px; padding:11px 13px;
+    font-family:var(--body); font-size:16px; background:var(--card); color:var(--ink); box-sizing:border-box; -webkit-appearance:none;}
+  .sheet-field input[type=time]:focus, .cfg-input:focus{outline:none; border-color:var(--rail);}
+  .sheet-field select{width:100%; border:1.5px solid var(--line); border-radius:13px; padding:12px 13px;
+    font-family:var(--body); font-size:15px; background:var(--card); color:var(--ink); -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235A6472' d='M6 8 0 0h12z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 14px center;}
+  .toggle-btn{display:inline-flex; align-items:center; gap:8px; border:1.5px solid var(--line); background:var(--card);
+    border-radius:12px; padding:11px 15px; font-family:var(--body); font-size:15px; font-weight:600; color:var(--ink-soft); cursor:pointer;}
+  .toggle-btn .tdot{width:16px; height:16px; border-radius:5px; border:2px solid #CDD3DA;}
+  .toggle-btn.on{border-color:var(--done); background:var(--done-tint); color:var(--done);}
+  .toggle-btn.on .tdot{background:var(--done); border-color:var(--done);}
+  .sheet-actions{display:flex; align-items:center; gap:10px; margin-top:20px;}
+  .sheet-actions .spacer{flex:1;}
+  .s-del{background:var(--alert-tint); color:var(--alert); border:0; border-radius:12px; padding:12px 16px;
+    font-weight:600; font-size:14px; font-family:var(--body); cursor:pointer;}
+  .s-cancel{background:none; border:0; color:var(--ink-soft); font-weight:600; font-size:15px; font-family:var(--body); cursor:pointer; padding:12px 6px;}
+  .s-save{background:var(--rail); color:#fff; border:0; border-radius:12px; padding:12px 22px; font-weight:700; font-size:15px; font-family:var(--body); cursor:pointer;}
+  .s-save:active{background:var(--rail-deep);}
+  .reset.danger{color:var(--alert);}
+
+  /* time pill on itinerary rows */
+  .time-pill{display:inline-flex; align-items:center; font-family:var(--disp); font-size:12px; font-weight:600;
+    color:var(--rail-deep); background:var(--rail-tint); padding:1px 7px; border-radius:6px; margin-right:8px; letter-spacing:.02em; vertical-align:1px;}
+  .row.done .time-pill{opacity:.5;}
+
+  /* custom confirm dialog (native confirm is blocked in sandbox) */
+  .confirm-wrap{position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:24px;}
+  .confirm-wrap[hidden]{display:none;}
+  .confirm-backdrop{position:absolute; inset:0; background:rgba(20,26,36,.5); animation:fade .15s;}
+  .confirm-box{position:relative; width:100%; max-width:330px; background:var(--card); border-radius:18px;
+    padding:20px 20px 16px; box-shadow:0 20px 50px rgba(0,0,0,.3); animation:popIn .2s ease;}
+  @keyframes popIn{from{opacity:0; transform:scale(.94);} to{opacity:1; transform:none;}}
+  .confirm-msg{font-size:15px; line-height:1.5; color:var(--ink); margin-bottom:18px;}
+  .confirm-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .c-no{background:none; border:0; color:var(--ink-soft); font-weight:600; font-size:15px; font-family:var(--body); cursor:pointer; padding:10px 14px;}
+  .c-yes{background:var(--alert); color:#fff; border:0; border-radius:11px; padding:10px 20px; font-weight:700; font-size:15px; font-family:var(--body); cursor:pointer;}
+
+  /* family owner tag */
+  .owner-tag{display:inline-block; font-family:var(--disp); font-size:10.5px; font-weight:600; color:var(--amber);
+    background:var(--amber-tint); padding:1px 7px; border-radius:6px; margin-left:7px; vertical-align:1px; letter-spacing:.02em;}
+  .row.done .owner-tag{opacity:.5;}
+
+  /* day fully-complete indicator */
+  .day .date-blk{position:relative;}
+  .day.alldone .date-blk .d{color:var(--done);}
+  .day.alldone .date-blk::after{content:"✓"; position:absolute; top:-5px; right:-3px; width:16px; height:16px;
+    border-radius:99px; background:var(--done); color:#fff; font-size:10px; line-height:16px; font-weight:700; text-align:center;}
+
+  /* day list toolbar */
+  .dl-tools{display:flex; gap:8px; margin:0 2px 13px;}
+  .dl-tools button{flex:1; background:var(--card); border:1px solid var(--line); border-radius:11px; padding:9px 4px;
+    font-family:var(--body); font-size:12.5px; font-weight:600; color:var(--ink-soft); cursor:pointer; box-shadow:var(--shadow);}
+  .dl-tools button:active{background:#F4F0E8;}
+  .dl-tools .primary{color:var(--rail-deep);}
+
+  /* export sheet */
+  .export-text{width:100%; height:210px; border:1.5px solid var(--line); border-radius:13px; padding:11px;
+    font-size:12.5px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--ink); box-sizing:border-box;
+    resize:none; line-height:1.55; -webkit-user-select:text; user-select:text; background:#FCFBF8;}
+  .copy-status{font-size:12.5px; color:var(--done); font-weight:600; min-height:18px; margin-top:8px;}
+
+  /* toast */
+  .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(126px + env(safe-area-inset-bottom));
+    background:var(--ink); color:#fff; font-size:13px; font-weight:600; padding:9px 17px; border-radius:99px;
+    z-index:95; box-shadow:0 6px 20px rgba(0,0,0,.25); opacity:0; transition:opacity .25s; pointer-events:none; max-width:86vw; text-align:center;}
+  .toast.show{opacity:1;}
+  .sync-chip{font-family:var(--disp); font-size:11.5px; font-weight:600; color:var(--rail-deep); background:var(--rail-tint); padding:2px 9px; border-radius:99px;}
+
+  /* ---------- Section ---------- */
+  .sec-h{display:flex; align-items:baseline; justify-content:space-between; margin:4px 2px 10px;}
+  .sec-h h2{font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft); margin:0; font-family:var(--disp);}
+  .sec-h .count{font-family:var(--disp); font-size:12px; color:var(--ink-faint); font-weight:500;}
+  .lead{font-size:13.5px; color:var(--ink-soft); margin:0 2px 14px;}
+
+  /* ---------- Card / rows ---------- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:14px;}
+  .row{display:flex; align-items:flex-start; gap:12px; padding:13px 15px; cursor:pointer; border-top:1px solid var(--line); min-height:48px; transition:background .15s;}
+  .row:first-child{border-top:0;}
+  .row:active{background:#FBFAF6;}
+  .box{flex:0 0 22px; width:22px; height:22px; border-radius:7px; border:2px solid #CDD3DA; margin-top:1px; position:relative; transition:.18s;}
+  .box::after{content:""; position:absolute; left:6px; top:2px; width:5px; height:10px; border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(45deg) scale(0); transition:transform .18s;}
+  .row .txt{flex:1; min-width:0;}
+  .row .label{font-size:15px; font-weight:500; transition:.18s;}
+  .row .sub{font-size:12.5px; color:var(--ink-soft); margin-top:3px; line-height:1.4;}
+  .row.done .box{background:var(--done); border-color:var(--done);}
+  .row.done .box::after{transform:rotate(45deg) scale(1);}
+  .row.done .label{color:var(--ink-faint); text-decoration:line-through; text-decoration-color:#C7CDD3;}
+
+  /* chips */
+  .chip{display:inline-flex; align-items:center; gap:4px; font-family:var(--disp); font-size:11px; font-weight:600;
+    padding:3px 8px; border-radius:99px; margin-top:7px; letter-spacing:.01em;}
+  .chip.alert{background:var(--alert-tint); color:var(--alert);}
+  .chip.amber{background:var(--amber-tint); color:var(--amber);}
+  .chip.rail{background:var(--rail-tint); color:var(--rail-deep);}
+  .chip.done{background:var(--done-tint); color:var(--done);}
+  .flag{flex:0 0 auto; align-self:center; font-family:var(--disp); font-size:10.5px; font-weight:700; letter-spacing:.04em;
+    padding:3px 8px; border-radius:7px;}
+  .flag.alert{background:var(--alert-tint); color:var(--alert);}
+  .flag.done{background:var(--done-tint); color:var(--done);}
+
+  /* ---------- Day accordion ---------- */
+  .day{background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); margin-bottom:11px; overflow:hidden;}
+  .day.today{border-color:var(--rail); box-shadow:0 0 0 1.5px var(--rail), var(--shadow);}
+  .day-h{display:flex; align-items:center; gap:13px; padding:13px 15px; cursor:pointer;}
+  .date-blk{flex:0 0 auto; text-align:center; width:46px;}
+  .date-blk .d{font-family:var(--disp); font-size:21px; font-weight:700; line-height:1;}
+  .date-blk .m{font-family:var(--disp); font-size:10px; font-weight:600; color:var(--ink-faint); letter-spacing:.08em;}
+  .date-blk .w{font-size:10.5px; color:var(--ink-soft); margin-top:2px;}
+  .day-info{flex:1; min-width:0;}
+  .day-info .t{font-size:15px; font-weight:600; line-height:1.3;}
+  .day-info .cityrow{display:flex; align-items:center; gap:7px; margin-top:4px;}
+  .citytag{font-family:var(--disp); font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:6px; background:var(--rail-tint); color:var(--rail-deep); letter-spacing:.03em;}
+  .day-prog{font-family:var(--disp); font-size:11.5px; color:var(--ink-faint); font-weight:500;}
+  .chev{flex:0 0 auto; color:var(--ink-faint); transition:transform .25s; font-size:13px;}
+  .day.open .chev{transform:rotate(90deg);}
+  .day-body{display:none; border-top:1px solid var(--line);}
+  .day.open .day-body{display:block;}
+  .day-body .row{padding-left:15px;}
+  .day-body .box{width:20px; height:20px; flex-basis:20px;}
+  .day-body .box::after{left:5px; top:2px;}
+  .today-pill{font-family:var(--disp); font-size:10px; font-weight:700; color:#fff; background:var(--rail); padding:2px 7px; border-radius:99px; letter-spacing:.05em;}
+
+  /* tips */
+  .tip{display:flex; gap:11px; padding:12px 15px; border-top:1px solid var(--line); font-size:13.5px; color:var(--ink); line-height:1.5;}
+  .tip:first-child{border-top:0;}
+  .tip .dot{flex:0 0 auto; width:7px; height:7px; border-radius:99px; background:var(--rail); margin-top:7px;}
+  .tip.warn .dot{background:var(--amber);}
+  .tip.info .dot{background:var(--ink-faint);}
+  .tip b{font-weight:600;}
+
+  .ghost-btn{display:block; width:100%; text-align:center; background:none; border:1px dashed #CDD3DA; color:var(--ink-soft);
+    font-family:var(--body); font-size:13px; font-weight:600; padding:11px; border-radius:12px; cursor:pointer; margin:2px 0 18px;}
+  .ghost-btn:active{background:#FBFAF6;}
+
+  footer{padding:20px 16px 0; text-align:center;}
+  footer .reset{background:none; border:0; color:var(--ink-faint); font-size:12.5px; text-decoration:underline; cursor:pointer; font-family:var(--body);}
+  .savenote{font-size:11.5px; color:var(--ink-faint); margin-top:12px;}
+  .savenote.warn{color:var(--amber);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">2026 暑假 · 中国家庭行</div>
+    <h1>沪 · 港 · 穗 行程清单</h1>
+    <div class="route">
+      <span class="city">上海</span><span class="leg">✈ 高铁</span>
+      <span class="city">香港</span><span class="leg">🚄 高铁</span>
+      <span class="city">广州</span>
+    </div>
+    <div class="meta">
+      <span><b>7月11日 – 7月31日</b>（21 天）</span>
+      <span>2 位成人 + 2 位青少年</span>
+      <span class="sync-chip" id="syncStatus" hidden>☁ 同步已开启</span>
+    </div>
+    <div class="statbar">
+      <div class="stat">
+        <div class="k">距离出发</div>
+        <div class="v" id="countdown">– <small>天</small></div>
+      </div>
+      <div class="stat">
+        <div class="k">总进度</div>
+        <div class="v" id="overallPct">0<small>%</small></div>
+        <div class="pbar"><i id="overallBar" style="width:0%"></i></div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="prep">
+      <span class="icwrap"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4h6a1 1 0 0 1 1 1v1h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2V5a1 1 0 0 1 1-1Z"/><path d="M9 6h6"/><path d="m9.5 14 1.8 1.8L15 12"/></svg><span class="badge" id="prepBadge"></span></span>
+      <span class="tlabel">行前准备</span>
+    </button>
+    <button class="tab" data-tab="daily">
+      <span class="icwrap"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/><path d="M8 14h3M8 17h6"/></svg><span class="badge" id="dailyBadge"></span></span>
+      <span class="tlabel">每日行程</span>
+    </button>
+    <button class="tab" data-tab="list">
+      <span class="icwrap"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg></span>
+      <span class="tlabel">清单提醒</span>
+    </button>
+  </nav>
+
+  <!-- PREP -->
+  <section class="panel active" data-panel="prep">
+    <div class="sec-h"><h2>关键预订 · 越早越好</h2><span class="count" id="prepCount"></span></div>
+    <p class="lead">这些有时间限制，错过就难补。已修正你原计划中的天文馆预约时间与健康申报项。</p>
+    <div class="edit-hint">✎ 编辑模式：点项目可修改文字；卡片底部可新增。住宿点一下可填写酒店名称。</div>
+    <div class="card" id="prepList"></div>
+
+    <div class="sec-h"><h2>住宿（6 段）</h2><span class="count" id="hotelCount"></span></div>
+    <p class="lead">7月下旬南方旺季，未订的 4 段建议尽快锁定。</p>
+    <div class="card" id="hotelList"></div>
+
+    <div class="sec-h"><h2>证件 · 出行准备</h2></div>
+    <div class="card" id="docList"></div>
+  </section>
+
+  <!-- DAILY -->
+  <section class="panel" data-panel="daily">
+    <p class="lead">点一下日期展开当天行程。旅行当天会自动高亮并展开。</p>
+    <div class="edit-hint">✎ 编辑模式：点任意项目可修改、移动到其他日期或删除；每天底部可新增项目。</div>
+    <div class="dl-tools">
+      <button id="expandAll">▾ 全部展开</button>
+      <button id="collapseAll">▸ 全部收起</button>
+      <button id="exportBtn" class="primary">⇪ 分享/导出</button>
+    </div>
+    <div id="dayList"></div>
+  </section>
+
+  <!-- LIST -->
+  <section class="panel" data-panel="list">
+    <div class="sec-h"><h2>每日出门检查</h2><span class="count" id="packCount"></span></div>
+    <p class="lead">出门前快速过一遍。每天可一键重置。</p>
+    <div class="edit-hint">✎ 编辑模式：点项目可修改；底部可新增自己的物品。</div>
+    <div class="card" id="packList"></div>
+    <button class="ghost-btn" id="resetPack">↺ 重置每日清单（新的一天）</button>
+
+    <div class="sec-h"><h2>家庭共享同步</h2></div>
+    <div class="card">
+      <div class="tip info"><span class="dot"></span><div>全家在手机／iPad 上打开<b>同一个网址</b>，开启同步后共用一份清单，约每 12 秒自动同步。⚠️ 共享数据对持有邀请链接的人可见可改，请勿在清单中写入护照号等敏感信息。</div></div>
+      <div class="tip"><span class="dot"></span><div><b>使用方法：</b>① 一位家长按 README 完成一次云端配置 → ② 点「复制家庭邀请链接」发到家庭群 → ③ 家人打开链接、点「开启家庭同步」即可。</div></div>
+      <div style="padding:0 15px 4px;">
+        <button class="ghost-btn" id="syncToggle" style="margin:12px 0 0;">☁ 开启家庭同步</button>
+        <div class="savenote" id="syncStateNote" style="text-align:left; margin-top:9px;">当前：本机模式（仅保存在此设备）</div>
+      </div>
+      <div id="inviteBox" style="padding:0 15px;" hidden>
+        <button class="ghost-btn" id="inviteCopy" style="margin:8px 0 0;">🔗 复制家庭邀请链接</button>
+        <div class="savenote" id="inviteStatus" style="text-align:left; margin-top:6px;">家人打开邀请链接即自动完成配置。</div>
+      </div>
+      <div id="cloudSetup" style="padding:2px 15px 14px;" hidden>
+        <div class="sheet-field"><label>Supabase 项目 URL</label><input type="url" class="cfg-input" id="cfgUrl" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off"></div>
+        <div class="sheet-field"><label>anon public key</label><input type="text" class="cfg-input" id="cfgKey" placeholder="eyJhbGciOi…" autocapitalize="off" autocorrect="off"></div>
+        <button class="ghost-btn" id="cfgSave" style="margin:12px 0 0;">保存并测试连接</button>
+        <div class="savenote" id="cfgStatus" style="text-align:left; margin-top:7px;">配置步骤见随附 README（一次性，约 2 分钟）。</div>
+      </div>
+      <div style="height:8px;"></div>
+    </div>
+
+    <div class="sec-h"><h2>重要提醒</h2></div>
+    <div class="card" id="tipList"></div>
+
+    <footer>
+      <button class="reset" id="resetAll">重置全部勾选记录</button>
+      <div style="margin-top:8px;"><button class="reset danger" id="restoreDefaults">恢复默认行程（清除所有修改）</button></div>
+      <div class="savenote" id="saveNote">进度与修改会自动保存，下次打开继续。</div>
+    </footer>
+  </section>
+</div>
+
+<button class="fab" id="editFab"><span class="fic">✎</span><span id="fabText">编辑</span></button>
+
+<div class="sheet-wrap" id="sheet" hidden>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet">
+    <div class="grip"></div>
+    <div class="sheet-title" id="sheetTitle">编辑项目</div>
+    <textarea id="sheetInput" rows="2" placeholder="输入内容…"></textarea>
+    <div class="sheet-field" id="sheetMoveWrap" hidden>
+      <label>日期</label>
+      <select id="sheetMove"></select>
+    </div>
+    <div class="sheet-field" id="sheetTimeWrap" hidden>
+      <label>时间（可选）</label>
+      <input type="time" id="sheetTime">
+    </div>
+    <div class="sheet-field" id="sheetOwnerWrap" hidden>
+      <label>负责人（可选）</label>
+      <select id="sheetOwner">
+        <option value="">无</option>
+        <option value="爸爸">爸爸</option>
+        <option value="妈妈">妈妈</option>
+        <option value="孩子">孩子</option>
+        <option value="全家">全家</option>
+      </select>
+    </div>
+    <div class="sheet-field" id="sheetBookedWrap" hidden>
+      <label>状态</label>
+      <button class="toggle-btn" id="sheetBooked"><span class="tdot"></span><span>已预订</span></button>
+    </div>
+    <div class="sheet-actions">
+      <button class="s-del" id="sheetDelete" hidden>删除</button>
+      <div class="spacer"></div>
+      <button class="s-cancel" id="sheetCancel">取消</button>
+      <button class="s-save" id="sheetSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-wrap" id="confirmWrap" hidden>
+  <div class="confirm-backdrop" id="confirmNo2"></div>
+  <div class="confirm-box">
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-actions">
+      <button class="c-no" id="confirmNo">取消</button>
+      <button class="c-yes" id="confirmYes">删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-wrap" id="exportWrap" hidden>
+  <div class="sheet-backdrop" id="exportClose2"></div>
+  <div class="sheet">
+    <div class="grip"></div>
+    <div class="sheet-title">分享 / 导出行程</div>
+    <textarea class="export-text" id="exportText" readonly></textarea>
+    <div class="copy-status" id="copyStatus"></div>
+    <div class="sheet-actions">
+      <div class="spacer"></div>
+      <button class="s-cancel" id="exportClose">关闭</button>
+      <button class="s-save" id="copyBtn">复制全部</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ WEB STORAGE LAYER (localStorage + optional Supabase cloud) ============ */
+const NS='tc26:';
+const CFG_KEY='tc26cfg';
+let CLOUD={url:'',key:'',table:'trip_checklist_2026'};
+(function loadCloudCfg(){
+  try{
+    if(location.hash && location.hash.indexOf('#cfg=')===0){
+      const j=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(5)))));
+      if(j && j.url && j.key){ localStorage.setItem(CFG_KEY, JSON.stringify({url:j.url,key:j.key,table:j.table||'trip_checklist_2026'})); history.replaceState(null,'',location.pathname+location.search); }
+    }
+  }catch(e){}
+  try{ const sv=localStorage.getItem(CFG_KEY); if(sv){ const j=JSON.parse(sv); CLOUD.url=j.url||''; CLOUD.key=j.key||''; if(j.table) CLOUD.table=j.table; } }catch(e){}
+})();
+function cloudReady(){ return /^https:\/\//.test(CLOUD.url) && CLOUD.key.length>20; }
+function cfgLink(){
+  const b=btoa(unescape(encodeURIComponent(JSON.stringify({url:CLOUD.url,key:CLOUD.key,table:CLOUD.table}))));
+  return location.origin+location.pathname+'#cfg='+b;
+}
+async function cloudGet(k){
+  const r=await fetch(CLOUD.url.replace(/\/+$/,'')+'/rest/v1/'+CLOUD.table+'?key=eq.'+encodeURIComponent(k)+'&select=value',
+    {headers:{apikey:CLOUD.key, Authorization:'Bearer '+CLOUD.key}});
+  if(!r.ok) throw new Error('cloud get '+r.status);
+  const rows=await r.json();
+  if(!rows.length) throw new Error('not found');
+  return rows[0].value;
+}
+async function cloudSet(k,v){
+  const r=await fetch(CLOUD.url.replace(/\/+$/,'')+'/rest/v1/'+CLOUD.table,
+    {method:'POST', headers:{apikey:CLOUD.key, Authorization:'Bearer '+CLOUD.key, 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates'},
+     body:JSON.stringify([{key:k, value:v}])});
+  if(!r.ok) throw new Error('cloud set '+r.status);
+}
+window.storage={
+  async get(key,shared){
+    if(shared){ if(!cloudReady()) throw new Error('cloud not configured'); const v=await cloudGet(key); return {key,value:v,shared:true}; }
+    const v=localStorage.getItem(NS+'p:'+key); if(v===null) throw new Error('not found'); return {key,value:v,shared:false};
+  },
+  async set(key,value,shared){
+    if(shared){ if(!cloudReady()) throw new Error('cloud not configured'); await cloudSet(key,value); return {key,value,shared:true}; }
+    localStorage.setItem(NS+'p:'+key,value); return {key,value,shared:false};
+  }
+};
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+/* ============ DATA ============ */
+const TRIP_START = new Date(2026, 6, 11); // Jul 11 2026
+const WD = ['周日','周一','周二','周三','周四','周五','周六'];
+
+const PREP = [
+  { id:'p_astro', label:'上海天文馆门票（7/12 参观）', priority:'alert',
+    sub:'门票仅在参观日前 3 天（含当日）开售，每日限约 7000 人、易售罄。请 7月10日 09:30 准时在官方“上海科技馆自然博物馆天文馆门票”小程序抢票，勿用第三方平台。',
+    chip:{cls:'alert', text:'⏰ 7/10 09:30 开抢'} },
+  { id:'p_train1', label:'高铁票：上海虹桥 → 香港西九龙（7/16）', priority:'amber',
+    sub:'跨境高铁预售期 15 天（含当天），约 7月1日 起可在 12306 购买。',
+    chip:{cls:'amber', text:'约 7/1 起售'} },
+  { id:'p_train2', label:'高铁票：香港西九龙 → 广州（7/19）', priority:'amber',
+    sub:'同为跨境票，预售期 15 天，约 7月4日 起可购。',
+    chip:{cls:'amber', text:'约 7/4 起售'} },
+  { id:'p_ocean', label:'香港海洋公园门票（7/18）', priority:'rail',
+    sub:'建议官网/APP 提前购票；并下载 Ocean Park App 看排队与表演时间。',
+    chip:{cls:'rail', text:'出发前购票'} },
+  { id:'p_chimelong', label:'长隆野生动物世界门票（7/22）', priority:'rail',
+    sub:'旺季人多，官方渠道提前购票更稳妥。',
+    chip:{cls:'rail', text:'出发前购票'} },
+];
+
+const HOTELS = [
+  { id:'h1', city:'上海', dates:'7/11 – 7/13', name:'金桥海昌企鹅度假酒店', booked:true },
+  { id:'h2', city:'上海', dates:'7/13 – 7/16', name:'世博陆家嘴滨江中心亚朵 S 酒店', booked:false, note:'已选定 · 确认预订' },
+  { id:'h3', city:'香港', dates:'7/16 – 7/19', name:'待预订', booked:false, urgent:true },
+  { id:'h4', city:'广州', dates:'7/19 – 7/27', name:'待预订（8 晚）', booked:false, urgent:true },
+  { id:'h5', city:'揭西', dates:'7/27 – 7/28', name:'待预订（探亲 1 晚）', booked:false, urgent:true },
+  { id:'h6', city:'广州', dates:'7/28 – 7/31', name:'待预订', booked:false, urgent:true },
+];
+
+const DOCS = [
+  { id:'doc_pass', label:'4 人护照检查（有效期建议 6 个月以上）' },
+  { id:'doc_visa', label:'入境证件确认：港澳通行证/签注 或 护照+签证（按身份核对）', sub:'内地↔香港往返需对应有效证件，出行前务必确认。' },
+  { id:'doc_flight', label:'往返航班确认：7/11 抵上海浦东 · 7/31 广州白云离境' },
+  { id:'doc_pay', label:'手机支付与网络：支付宝/微信绑卡、内地漫游或 eSIM / 大湾区数据' },
+  { id:'doc_health', label:'健康申报：常规情况已无需填报，仅有发热等症状时主动向海关申报', sub:'自 2023年11月起取消强制健康申报卡——原计划的“入境前健康申报”可忽略。', chip:{cls:'done', text:'✓ 已无需常规申报'} },
+];
+
+const DAYS = [
+  { d:11, city:'上海', t:'抵达上海', items:['抵达上海浦东国际机场','办理入境与行李提取','前往金桥海昌企鹅度假酒店','办理入住手续'] },
+  { d:12, city:'上海', t:'滴水湖科技探索日', items:['酒店早餐','前往上海天文馆','参观上海天文馆（需提前抢票）','朵云书院·滴水湖店','滴水湖环湖骑行／驾车','七彩桥','滴水湖广场亲水平台','未来明信片体验','耀雪冰雪世界','返回酒店休息'] },
+  { d:13, city:'上海', t:'换酒店 · 陆家嘴轻松日', items:['酒店早餐','退房：企鹅度假酒店','磁浮列车（地铁 16→2 号线）','前往亚朵 S 酒店 · 入住/寄存行李','陆家嘴午餐','陆家嘴滨江步道','东方明珠','前往外滩 · 黄浦江景','北外滩滨江步道 · 浦东日落','正大广场晚餐','返回酒店休息'] },
+  { d:14, city:'上海', t:'朱家角古镇慢游日', items:['酒店早餐','前往朱家角古镇 · 漫步','放生桥','北大街老街','古镇特色午餐','品尝扎肉','品尝阿婆粽','江南小吃','朱家角古镇游船','朵云轩书局（可选）','返回上海市区','黄浦江夜游（夜景版·可选）'] },
+  { d:15, city:'上海', t:'汽车文化与赛车体验日', items:['酒店早餐','上海汽车博物馆','汽车历史展区','经典名车展区','互动体验区','安亭汽车城午餐','锐擎卡丁车主题乐园','卡丁车体验','徐家汇商圈 · 尤尼克斯旗舰店','返回酒店 · 整理行李','检查高铁车票与护照证件'] },
+  { d:16, city:'上海→香港', city2:true, t:'上海 → 香港', items:['酒店早餐 · 退房','前往上海虹桥站','预留充足安检时间','搭高铁前往香港西九龙站','抵达香港 · 入住酒店','附近简单晚餐'] },
+  { d:17, city:'香港', t:'香港经典景点', items:['酒店早餐','旺角 · 金鱼街','波鞋街','旺角午餐','尖沙咀海滨长廊','香港星光大道 · 维多利亚港','天星小轮（尖沙咀→中环）','太平山顶 · 维港夜景','返回酒店'] },
+  { d:18, city:'香港', t:'香港海洋公园', items:['酒店早餐','前往香港海洋公园','动物展区','机动游戏','缆车体验','园区午餐','继续玩','返回酒店 · 早点休息'] },
+  { d:19, city:'香港→广州', city2:true, t:'探险公园 → 广州', items:['酒店早餐','Go Green Adventure Park HK 户外探险','返回酒店领取行李','前往香港西九龙站','搭高铁前往广州','抵达广州 · 入住酒店','简单晚餐 · 早点休息'] },
+  { d:20, city:'广州', t:'广州城市地标', items:['酒店早餐','广州塔 · 外观拍照','花城广场','海心沙（可选）','附近晚餐','珠江夜游','返回酒店'] },
+  { d:21, city:'广州', t:'老广州文化探索', items:['酒店早餐','北京路步行街','广式早茶','上下九步行街','永庆坊','沙面岛','咖啡馆休息','返回酒店'] },
+  { d:22, city:'广州', t:'长隆野生动物世界', items:['酒店早餐','前往长隆野生动物世界','小火车／自驾区','步行游览区','动物表演','园区午餐','继续玩','返回酒店 · 早点休息'] },
+  { d:23, city:'广州', t:'购物与卡丁车', items:['酒店早餐','APM 商场 · 购物','午餐','一起卡丁赛车乐园 · 卡丁车体验','自由活动','返回酒店'] },
+  { d:24, city:'广州·顺德', t:'顺德美食一日游', items:['酒店早餐','前往顺德','华盖路步行街','品尝双皮奶','顺德鱼生','烧鹅','顺峰山公园','返回广州酒店休息'] },
+  { d:25, city:'广州·开平', t:'开平侨乡文化一日游', items:['酒店早餐','前往开平','开平碉楼 · 碉楼群','赤坎古镇','午餐','华侨文化体验','返回广州酒店休息'] },
+  { d:26, city:'广州', t:'休息调整日（缓冲）', items:['睡到自然醒 · 酒店早餐','酒店休息','洗衣／整理衣物','补充购物','太古汇（可选）','正佳广场（可选）','天河城（可选）','简单晚餐 · 为揭西做准备'] },
+  { d:27, city:'揭西', t:'广州 → 揭西（探亲）', items:['酒店早餐','整理过夜行李','前往揭西县','潮汕特色美食','欣赏家乡风光','入住揭西住宿'] },
+  { d:28, city:'揭西→广州', city2:true, t:'揭西 → 广州 · 返回调整', items:['揭西早餐','继续探访','整理行李','返回广州 · 入住酒店','下午休息 · 自由活动','补拍照片 · 补充购物'] },
+  { d:29, city:'广州', t:'广州美食探索日', items:['酒店早餐或早茶','广式早茶','老字号餐厅','广州特色小吃','自由逛街','家庭聚餐餐厅','返回酒店'] },
+  { d:30, city:'广州', t:'最后采购 · 整理行李', items:['酒店早餐','购买广州伴手礼','整理行李','检查护照与证件','确认航班','检查托运行李重量','安排机场交通','早点休息'] },
+  { d:31, city:'广州→加拿大', city2:true, t:'广州返程', items:['酒店早餐 · 退房','前往广州白云国际机场','办理登机手续','托运行李 · 安检','返回加拿大 ✈'] },
+];
+
+const PACK = ['护照／证件','手机','充电宝','雨伞','防晒霜','纸巾','水','少量现金','酒店房卡','高铁／门票二维码'];
+
+const TIPS = [
+  { cls:'warn', html:'<b>上海天文馆</b>：仅参观日前 3 天开售且限量，<b>7/10 09:30</b> 准时官方渠道抢票。' },
+  { cls:'', html:'<b>海洋公园 / 长隆</b>：建议提前网上购票，避开现场排队。' },
+  { cls:'info', html:'<b>健康申报</b>：现已无需常规填报，仅有发热等症状时主动向海关申报。' },
+  { cls:'', html:'<b>港铁东铁线</b>：留意头等车厢标示，避免误坐。' },
+  { cls:'warn', html:'<b>香港室内冷气强</b>：随身备一件薄外套。' },
+  { cls:'', html:'<b>广州地铁</b>：高峰期尽量避开 3 号线、5 号线。' },
+  { cls:'', html:'<b>广州餐厅</b>：部分收茶位费、不主动提供纸巾，建议自备。' },
+  { cls:'warn', html:'<b>长途一日游</b>（顺德 / 开平 / 揭西）：前一天早点休息。' },
+  { cls:'warn', html:'<b>7 月下旬华南</b>炎热多雷雨（台风季）：注意防晒补水；如遇大雨，可用 7/26 休息日与其他广州行程对调。' },
+];
+
+/* ============ STATE ============ */
+const STORE_KEY = 'china_trip_2026_v1';
+let state = { v:2, days:[], prep:[], hotels:[], docs:[], pack:[], checked:{}, open:{} };
+let storageOK = true;
+let editMode = false;
+
+let _idc = Date.now();
+function uid(){ return 'i' + (_idc++).toString(36) + Math.floor(Math.random()*46656).toString(36); }
+
+function seedFromDefaults(carry){
+  const ck = carry || {};
+  state.days = DAYS.map(d=>({
+    d:d.d, city:d.city, t:d.t,
+    items:d.items.map((label,i)=>{
+      const id = uid();
+      if(ck['d'+d.d+'_'+i]) state.checked[id] = true;   // migrate old index-based day checks
+      return { id, label };
+    })
+  }));
+  state.prep   = PREP.map(p=>({ id:p.id, label:p.label, sub:p.sub||'', chip:p.chip||null }));
+  state.docs   = DOCS.map(d=>({ id:d.id, label:d.label, sub:d.sub||'', chip:d.chip||null }));
+  state.hotels = HOTELS.map(h=>({ id:h.id, city:h.city, dates:h.dates, name:h.name, urgent:!!h.urgent, note:h.note||'' }));
+  state.pack   = PACK.map((label,i)=>({ id:'pk'+i, label }));
+  HOTELS.forEach(h=>{ if(h.booked && state.checked[h.id]===undefined) state.checked[h.id]=true; });
+}
+
+async function loadState(){
+  let saved = null;
+  try{
+    if(window.storage){ const r = await window.storage.get(STORE_KEY); if(r && r.value) saved = JSON.parse(r.value); }
+    else storageOK = false;
+  }catch(e){ if(!window.storage) storageOK = false; }
+
+  if(saved && saved.v === 2 && Array.isArray(saved.days)){
+    state.checked = saved.checked || {};
+    state.open    = saved.open || {};
+    state.days    = saved.days;
+    state.prep    = saved.prep   || [];
+    state.docs    = saved.docs   || [];
+    state.hotels  = saved.hotels || [];
+    state.pack    = saved.pack   || [];
+    state.v = 2;
+  } else {
+    state.checked = (saved && saved.checked) || {};
+    state.open    = (saved && saved.open) || {};
+    seedFromDefaults(state.checked);
+    state.v = 2;
+  }
+}
+
+let saveTimer = null;
+let adopting = false;
+function saveState(){
+  if(!adopting) schedulePush();
+  if(!storageOK || !window.storage) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{ await window.storage.set(STORE_KEY, JSON.stringify(state)); }
+    catch(e){ console.error('save failed', e); }
+  }, 150);
+}
+
+/* ============ RENDER ============ */
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function rowHTML(id, label, opts){
+  opts = opts || {};
+  const done = state.checked[id] ? ' done':'';
+  const dk = opts.kind ? ' data-kind="'+opts.kind+'"' : '';
+  const di = (opts.dayIdx!=null) ? ' data-dayidx="'+opts.dayIdx+'"' : '';
+  let inner = '<div class="box"></div><div class="txt"><div class="label">'
+    + (opts.time ? '<span class="time-pill">'+esc(opts.time)+'</span>' : '')
+    + esc(label)
+    + (opts.owner ? '<span class="owner-tag">'+esc(opts.owner)+'</span>' : '')
+    + '</div>';
+  if(opts.sub)  inner += '<div class="sub">'+opts.sub+'</div>';
+  if(opts.chip) inner += '<span class="chip '+opts.chip.cls+'">'+opts.chip.text+'</span>';
+  inner += '</div>';
+  if(opts.flag) inner += '<span class="flag '+opts.flag.cls+'">'+opts.flag.text+'</span>';
+  if(opts.kind) inner += '<span class="edit-handle">✎</span>';
+  return '<div class="row'+done+'" data-id="'+id+'"'+dk+di+'>'+inner+'</div>';
+}
+function addRowHTML(kind, dayIdx){
+  const di = (dayIdx!=null) ? ' data-dayidx="'+dayIdx+'"':'';
+  return '<div class="add-row" data-add="'+kind+'"'+di+'><span class="plus">+</span>添加项目</div>';
+}
+
+function sortDayItems(items){
+  return items.map((it,i)=>({it,i})).sort((a,b)=>{
+    const ta=a.it.time||'', tb=b.it.time||'';
+    if(ta&&tb) return ta<tb?-1:(ta>tb?1:a.i-b.i);
+    if(ta&&!tb) return -1;
+    if(!ta&&tb) return 1;
+    return a.i-b.i;
+  }).map(x=>x.it);
+}
+
+function render(){
+  document.getElementById('prepList').innerHTML =
+    state.prep.map(p=>rowHTML(p.id, p.label, {kind:'prep', sub:p.sub, chip:p.chip, owner:p.owner})).join('') + addRowHTML('prep');
+
+  document.getElementById('hotelList').innerHTML = state.hotels.map(h=>{
+    const label = h.city+' · '+h.dates;
+    const booked = !!state.checked[h.id];
+    const sub = esc(h.name) + (h.note? ' · '+esc(h.note) : '');
+    const flag = booked ? {cls:'done', text:'已订'} : (h.urgent? {cls:'alert', text:'未订'} : null);
+    return rowHTML(h.id, label, {kind:'hotel', sub:sub, flag:flag});
+  }).join('');
+
+  document.getElementById('docList').innerHTML =
+    state.docs.map(d=>rowHTML(d.id, d.label, {kind:'doc', sub:d.sub, chip:d.chip})).join('') + addRowHTML('doc');
+
+  document.getElementById('dayList').innerHTML = state.days.map((day,idx)=>{
+    const dt = new Date(2026,6,day.d);
+    const doneN = day.items.filter(it=>state.checked[it.id]).length;
+    const allDone = day.items.length>0 && doneN===day.items.length;
+    const isToday = sameDay(dt, new Date());
+    const open = state.open['day'+day.d] || isToday;
+    const ordered = sortDayItems(day.items);
+    const rows = ordered.map(it=>rowHTML(it.id, it.label, {kind:'day', dayIdx:idx, time:it.time, owner:it.owner})).join('') + addRowHTML('day', idx);
+    const citytag = '<span class="citytag">'+esc(day.city)+'</span>';
+    const todayPill = isToday? '<span class="today-pill">今日</span>':'';
+    return '<div class="day'+(open?' open':'')+(isToday?' today':'')+(allDone?' alldone':'')+'" data-day="'+day.d+'">'
+      + '<div class="day-h">'
+      +   '<div class="date-blk"><div class="m">JUL</div><div class="d">'+day.d+'</div><div class="w">'+WD[dt.getDay()]+'</div></div>'
+      +   '<div class="day-info"><div class="t">'+esc(day.t)+'</div><div class="cityrow">'+citytag+todayPill+'<span class="day-prog" data-dayprog="'+day.d+'">'+doneN+'/'+day.items.length+'</span></div></div>'
+      +   '<div class="chev">▶</div>'
+      + '</div>'
+      + '<div class="day-body">'+rows+'</div></div>';
+  }).join('');
+
+  document.getElementById('packList').innerHTML =
+    state.pack.map(p=>rowHTML(p.id, p.label, {kind:'pack', owner:p.owner})).join('') + addRowHTML('pack');
+
+  document.getElementById('tipList').innerHTML = TIPS.map(t=>'<div class="tip '+t.cls+'"><span class="dot"></span><div>'+t.html+'</div></div>').join('');
+
+  updateProgress();
+}
+
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+function updateProgress(){
+  let total=0, done=0;
+  const add = id=>{ total++; if(state.checked[id]) done++; };
+  state.prep.forEach(p=>add(p.id));
+  state.hotels.forEach(h=>add(h.id));
+  state.docs.forEach(d=>add(d.id));
+  state.days.forEach(day=> day.items.forEach(it=>add(it.id)));
+  const pct = total? Math.round(done/total*100):0;
+  document.getElementById('overallPct').innerHTML = pct+'<small>%</small>';
+  document.getElementById('overallBar').style.width = pct+'%';
+
+  let prepTotal=0, prepDone=0;
+  [...state.prep, ...state.hotels, ...state.docs].forEach(x=>{ prepTotal++; if(state.checked[x.id]) prepDone++; });
+  const prepRem = prepTotal-prepDone;
+  const pb = document.getElementById('prepBadge');
+  const astro = state.prep.find(p=>p.id==='p_astro');
+  const alertOn = state.hotels.some(h=>h.urgent && !state.checked[h.id]) || (!!astro && !state.checked[astro.id]);
+  pb.textContent = prepRem>0 ? prepRem : ''; pb.className = 'badge'+(alertOn?' alert':'');
+  document.getElementById('prepCount').textContent = prepDone+' / '+prepTotal+' 完成';
+  document.getElementById('hotelCount').textContent = state.hotels.filter(h=>state.checked[h.id]).length+' / '+state.hotels.length+' 已订/确认';
+  document.getElementById('dailyBadge').textContent = '';
+  document.getElementById('packCount').textContent = state.pack.filter(p=>state.checked[p.id]).length+' / '+state.pack.length;
+
+  state.days.forEach(day=>{
+    const el = document.querySelector('[data-dayprog="'+day.d+'"]');
+    if(el){ const n=day.items.filter(it=>state.checked[it.id]).length; el.textContent=n+'/'+day.items.length; }
+  });
+}
+
+function updateCountdown(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((TRIP_START - today)/86400000);
+  const el = document.getElementById('countdown');
+  if(diff>0) el.innerHTML = diff+' <small>天</small>';
+  else if(diff===0) el.innerHTML = '出发<small>日</small>';
+  else if(diff>=-20) el.innerHTML = '第 '+(Math.abs(diff)+1)+' <small>天</small>';
+  else el.innerHTML = '已返程';
+}
+
+/* ============ EDITOR ============ */
+let editorCtx = null;
+const sheet = document.getElementById('sheet');
+
+function findItem(kind, id, dayIdx){
+  if(kind==='day'){ const day=state.days[dayIdx]; return day ? day.items.find(it=>it.id===id) : null; }
+  if(kind==='pack')  return state.pack.find(x=>x.id===id);
+  if(kind==='prep')  return state.prep.find(x=>x.id===id);
+  if(kind==='doc')   return state.docs.find(x=>x.id===id);
+  if(kind==='hotel') return state.hotels.find(x=>x.id===id);
+  return null;
+}
+
+function buildMoveOptions(sel, currentIdx){
+  sel.innerHTML = state.days.map((d,i)=>'<option value="'+i+'"'+(i===currentIdx?' selected':'')+'>7/'+d.d+' · '+esc(d.t)+'</option>').join('');
+}
+
+function openEditor(ctx){
+  editorCtx = ctx;
+  const input = document.getElementById('sheetInput');
+  const moveWrap = document.getElementById('sheetMoveWrap');
+  const timeWrap = document.getElementById('sheetTimeWrap');
+  const timeInput = document.getElementById('sheetTime');
+  const ownerWrap = document.getElementById('sheetOwnerWrap');
+  const ownerSel = document.getElementById('sheetOwner');
+  const bookedWrap = document.getElementById('sheetBookedWrap');
+  const delBtn = document.getElementById('sheetDelete');
+  const move = document.getElementById('sheetMove');
+  const bookedBtn = document.getElementById('sheetBooked');
+  const titleEl = document.getElementById('sheetTitle');
+
+  moveWrap.hidden = true; timeWrap.hidden = true; ownerWrap.hidden = true; bookedWrap.hidden = true; delBtn.hidden = true;
+  timeInput.value = ''; ownerSel.value = '';
+  input.placeholder = '输入内容…';
+  const kindName = {day:'行程项目', pack:'物品', prep:'预订项目', doc:'证件项目', hotel:'住宿'}[ctx.kind] || '项目';
+  const ownable = (ctx.kind==='day' || ctx.kind==='prep' || ctx.kind==='pack');
+
+  if(ctx.mode==='add'){
+    titleEl.textContent = '新增'+kindName;
+    input.value = '';
+    if(ctx.kind==='day'){ moveWrap.hidden=false; timeWrap.hidden=false; buildMoveOptions(move, ctx.dayIdx); }
+    if(ownable) ownerWrap.hidden=false;
+  } else {
+    const item = findItem(ctx.kind, ctx.itemId, ctx.dayIdx);
+    if(ctx.kind==='hotel'){
+      titleEl.textContent = '编辑住宿';
+      input.value = item ? item.name : '';
+      input.placeholder = '酒店名称…';
+      bookedWrap.hidden = false;
+      bookedBtn.classList.toggle('on', !!state.checked[ctx.itemId]);
+    } else {
+      titleEl.textContent = '编辑'+kindName;
+      input.value = item ? item.label : '';
+    }
+    if(ownable){ ownerWrap.hidden=false; ownerSel.value=(item&&item.owner)||''; }
+    if(ctx.kind==='day'){ moveWrap.hidden=false; timeWrap.hidden=false; timeInput.value=(item&&item.time)||''; buildMoveOptions(move, ctx.dayIdx); delBtn.hidden=false; }
+    else if(ctx.kind==='pack' || ctx.kind==='prep' || ctx.kind==='doc'){ delBtn.hidden=false; }
+  }
+  sheet.hidden = false;
+  setTimeout(()=>input.focus(), 60);
+}
+
+function closeEditor(){ sheet.hidden = true; editorCtx = null; }
+
+function saveEditor(){
+  if(!editorCtx) return;
+  const ctx = editorCtx;
+  const val = document.getElementById('sheetInput').value.trim();
+  if(ctx.kind!=='hotel' && !val){ closeEditor(); return; }
+
+  if(ctx.mode==='add'){
+    const id = uid();
+    const owner = document.getElementById('sheetOwner').value || '';
+    if(ctx.kind==='day'){
+      const targetIdx = parseInt(document.getElementById('sheetMove').value,10);
+      const time = document.getElementById('sheetTime').value || '';
+      state.days[targetIdx].items.push({ id, label: val, time, owner });
+      state.open['day'+state.days[targetIdx].d] = true;
+    } else if(ctx.kind==='pack'){ state.pack.push({id,label:val,owner}); }
+    else if(ctx.kind==='prep'){ state.prep.push({id,label:val,sub:'',chip:null,owner}); }
+    else if(ctx.kind==='doc'){ state.docs.push({id,label:val,sub:'',chip:null}); }
+  } else {
+    const item = findItem(ctx.kind, ctx.itemId, ctx.dayIdx);
+    if(item){
+      if(ctx.kind==='hotel'){
+        item.name = val;
+        state.checked[ctx.itemId] = document.getElementById('sheetBooked').classList.contains('on');
+      } else { item.label = val; }
+      if(ctx.kind==='day'){ item.time = document.getElementById('sheetTime').value || ''; }
+      if(ctx.kind==='day' || ctx.kind==='prep' || ctx.kind==='pack'){ item.owner = document.getElementById('sheetOwner').value || ''; }
+    }
+    if(ctx.kind==='day'){
+      const targetIdx = parseInt(document.getElementById('sheetMove').value,10);
+      if(targetIdx!==ctx.dayIdx){
+        const src = state.days[ctx.dayIdx];
+        const pos = src.items.findIndex(it=>it.id===ctx.itemId);
+        if(pos>-1){ const moved = src.items.splice(pos,1)[0]; state.days[targetIdx].items.push(moved); state.open['day'+state.days[targetIdx].d]=true; }
+      }
+    }
+  }
+  saveState(); render(); closeEditor();
+}
+
+function deleteItem(){
+  if(!editorCtx || editorCtx.mode!=='edit') return;
+  const ctx = editorCtx;
+  uiConfirm('删除这一项？', '删除', ()=>{
+    if(ctx.kind==='day'){ const day=state.days[ctx.dayIdx]; const pos=day.items.findIndex(it=>it.id===ctx.itemId); if(pos>-1) day.items.splice(pos,1); }
+    else if(ctx.kind==='pack'){ state.pack = state.pack.filter(x=>x.id!==ctx.itemId); }
+    else if(ctx.kind==='prep'){ state.prep = state.prep.filter(x=>x.id!==ctx.itemId); }
+    else if(ctx.kind==='doc'){ state.docs = state.docs.filter(x=>x.id!==ctx.itemId); }
+    delete state.checked[ctx.itemId];
+    saveState(); render(); closeEditor();
+  });
+}
+
+/* ============ CUSTOM CONFIRM (native confirm is blocked in sandbox) ============ */
+let _confirmYes = null;
+let _confirmNo = null;
+function uiConfirm(msg, yesLabel, onYes, noLabel, onNo, danger){
+  document.getElementById('confirmMsg').textContent = msg;
+  const yes = document.getElementById('confirmYes');
+  yes.textContent = yesLabel || '确定';
+  yes.style.background = (danger===false) ? 'var(--rail)' : 'var(--alert)';
+  document.getElementById('confirmNo').textContent = noLabel || '取消';
+  _confirmYes = onYes;
+  _confirmNo = noLabel ? (onNo || null) : null;
+  document.getElementById('confirmWrap').hidden = false;
+}
+function closeConfirm(){ document.getElementById('confirmWrap').hidden = true; _confirmYes = null; _confirmNo = null; }
+
+/* flush pending save immediately when the app is backgrounded/closed */
+function flushSave(){
+  if(!storageOK || !window.storage) return;
+  clearTimeout(saveTimer);
+  try{ window.storage.set(STORE_KEY, JSON.stringify(state)); }catch(e){}
+}
+window.addEventListener('pagehide', flushSave);
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='hidden') flushSave();
+  else if(syncOn) pullShared();
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    if(!sheet.hidden) closeEditor();
+    closeConfirm();
+    const ew=document.getElementById('exportWrap'); if(ew) ew.hidden=true;
+  } else if(e.key==='Enter' && !e.shiftKey && document.activeElement===document.getElementById('sheetInput')){
+    e.preventDefault(); saveEditor();
+  }
+});
+
+/* ============ EXPORT / TOOLS ============ */
+function setAllDaysOpen(v){
+  state.days.forEach(d=>{ state.open['day'+d.d]=v; });
+  saveState(); render();
+}
+
+function buildExportText(){
+  let total=0, done=0;
+  const tally = id=>{ total++; if(state.checked[id]) done++; };
+  state.prep.forEach(p=>tally(p.id)); state.hotels.forEach(h=>tally(h.id));
+  state.docs.forEach(d=>tally(d.id)); state.days.forEach(day=>day.items.forEach(it=>tally(it.id)));
+  const pct = total? Math.round(done/total*100):0;
+  const mk = ck=> ck?'☑':'☐';
+  const own = o=> o?('（'+o+'）'):'';
+  const L = [];
+  L.push('🇨🇳 2026 暑假中国行 · 7月11日–7月31日');
+  L.push('上海 ✈ 香港 🚄 广州 ｜ 2大2小 ｜ 总进度 '+pct+'%');
+  L.push('');
+  L.push('━━ 行前准备 ━━');
+  state.prep.forEach(p=>L.push(mk(state.checked[p.id])+' '+p.label+own(p.owner)));
+  L.push('');
+  L.push('━━ 住宿 ━━');
+  state.hotels.forEach(h=>L.push(mk(state.checked[h.id])+' '+h.city+' '+h.dates+' · '+h.name));
+  L.push('');
+  L.push('━━ 证件 · 出行准备 ━━');
+  state.docs.forEach(d=>L.push(mk(state.checked[d.id])+' '+d.label));
+  state.days.forEach(day=>{
+    L.push('');
+    L.push('━━ 7月'+day.d+'日 · '+day.t+'（'+day.city+'）━━');
+    sortDayItems(day.items).forEach(it=>{
+      L.push(mk(state.checked[it.id])+' '+(it.time? it.time+' ':'')+it.label+own(it.owner));
+    });
+  });
+  L.push('');
+  L.push('━━ 每日出门检查 ━━');
+  state.pack.forEach(p=>L.push('• '+p.label+own(p.owner)));
+  return L.join('\n');
+}
+
+function openExport(){
+  document.getElementById('exportText').value = buildExportText();
+  document.getElementById('copyStatus').textContent = '';
+  document.getElementById('exportWrap').hidden = false;
+}
+
+async function doCopy(){
+  const ta = document.getElementById('exportText');
+  const status = document.getElementById('copyStatus');
+  try{
+    await navigator.clipboard.writeText(ta.value);
+    status.textContent = '已复制到剪贴板 ✓';
+  }catch(e){
+    try{
+      ta.removeAttribute('readonly');
+      ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand('copy');
+      ta.setAttribute('readonly','');
+      status.textContent = ok ? '已复制到剪贴板 ✓' : '自动复制被拦截，请长按文本框全选复制';
+    }catch(e2){ status.textContent = '自动复制被拦截，请长按文本框全选复制'; }
+  }
+}
+
+/* ============ FAMILY SYNC (shared storage) ============ */
+const SHARED_KEY = 'china_trip_2026_family';
+const SYNC_PREF_KEY = 'china_trip_2026_syncpref';
+let deviceId = null, syncOn = false, remoteRev = 0, lastAdoptedTag = '', pollTimer = null, syncBusy = false, pushTimer = null;
+
+function showToastMsg(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function ago(ts){
+  const s = Math.max(0, Math.round((Date.now()-ts)/1000));
+  if(s<12) return '刚刚'; if(s<60) return s+'秒前';
+  const m = Math.round(s/60); if(m<60) return m+'分钟前';
+  return Math.round(m/60)+'小时前';
+}
+function setSyncStatus(t){
+  const st = document.getElementById('syncStatus');
+  if(syncOn){ st.hidden = false; st.textContent = '☁ '+t; } else { st.hidden = true; }
+}
+function updateSyncUI(){
+  const btn = document.getElementById('syncToggle');
+  const note = document.getElementById('syncStateNote');
+  const setup = document.getElementById('cloudSetup');
+  const invite = document.getElementById('inviteBox');
+  if(setup) setup.hidden = cloudReady();
+  if(invite) invite.hidden = !cloudReady();
+  if(syncOn){
+    btn.textContent = '☁ 关闭家庭同步（回到本机模式）';
+    note.textContent = '当前：家庭同步已开启 · 全家共用一份清单，约每 12 秒自动同步。';
+    setSyncStatus('同步已开启');
+  } else {
+    btn.textContent = '☁ 开启家庭同步';
+    note.textContent = cloudReady() ? '云端已配置 ✓ 点上方按钮开启同步。' : '当前：本机模式 · 跨设备同步需先完成下方云端配置（全家只需一人配置）。';
+    setSyncStatus('');
+  }
+}
+async function persistSyncPref(){
+  if(!storageOK || !window.storage) return;
+  try{ await window.storage.set(SYNC_PREF_KEY, JSON.stringify({on:syncOn, deviceId})); }catch(e){}
+}
+function sharedPayload(){
+  return { rev:remoteRev, updatedAt:Date.now(), deviceId,
+    data:{ days:state.days, prep:state.prep, hotels:state.hotels, docs:state.docs, pack:state.pack, checked:state.checked } };
+}
+async function pushShared(){
+  if(!syncOn || !storageOK || !window.storage) return;
+  try{
+    remoteRev = remoteRev + 1;
+    const p = sharedPayload(); p.rev = remoteRev;
+    await window.storage.set(SHARED_KEY, JSON.stringify(p), true);
+    lastAdoptedTag = p.rev+':'+p.updatedAt;
+    setSyncStatus('已同步 · 刚刚');
+  }catch(e){ setSyncStatus('同步失败，稍后自动重试'); }
+}
+function schedulePush(){
+  if(!syncOn) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushShared, 450);
+}
+function adoptRemote(p){
+  const d = p.data || {};
+  adopting = true;
+  if(d.days) state.days = d.days;
+  if(d.prep) state.prep = d.prep;
+  if(d.hotels) state.hotels = d.hotels;
+  if(d.docs) state.docs = d.docs;
+  if(d.pack) state.pack = d.pack;
+  state.checked = d.checked || {};
+  remoteRev = p.rev; lastAdoptedTag = p.rev+':'+p.updatedAt;
+  saveState();
+  adopting = false;
+  render();
+}
+async function pullShared(showToast){
+  if(!syncOn || !storageOK || !window.storage || syncBusy) return;
+  syncBusy = true;
+  try{
+    const r = await window.storage.get(SHARED_KEY, true);
+    if(r && r.value){
+      const p = JSON.parse(r.value);
+      const tag = p.rev+':'+p.updatedAt;
+      if(p.deviceId !== deviceId && p.rev >= remoteRev && tag !== lastAdoptedTag){
+        adoptRemote(p);
+        if(showToast !== false) showToastMsg('已同步家人的更新 ✓');
+      } else if(p.rev > remoteRev){ remoteRev = p.rev; }
+      setSyncStatus('已同步 · '+ago(p.updatedAt));
+    }
+  }catch(e){ /* shared key may not exist yet */ }
+  syncBusy = false;
+}
+function startPolling(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(()=>pullShared(), 12000);
+}
+async function enableSync(){
+  if(!cloudReady()){
+    showToastMsg('请先完成云端配置（见下方）');
+    const cs=document.getElementById('cloudSetup'); if(cs) cs.hidden=false;
+    updateSyncUI(); return;
+  }
+  let existing = null;
+  try{ const r = await window.storage.get(SHARED_KEY, true); if(r && r.value) existing = JSON.parse(r.value); }catch(e){}
+  const finish = ()=>{ syncOn = true; persistSyncPref(); startPolling(); updateSyncUI(); };
+  if(existing && existing.deviceId !== deviceId){
+    uiConfirm('共享空间里已有家人保存的清单。要加载家人的版本，还是用本机数据覆盖共享版本？',
+      '加载家人的', ()=>{ finish(); adoptRemote(existing); showToastMsg('已加载家人的清单 ✓'); },
+      '用我的覆盖', ()=>{ finish(); remoteRev = existing.rev||0; pushShared(); showToastMsg('已用本机数据覆盖共享清单'); },
+      false);
+  } else {
+    finish();
+    if(existing) remoteRev = existing.rev||0;
+    pushShared();
+    showToastMsg('家庭同步已开启 ✓');
+  }
+}
+function disableSync(){
+  syncOn = false;
+  clearInterval(pollTimer); clearTimeout(pushTimer);
+  persistSyncPref(); updateSyncUI();
+}
+async function saveCloudCfg(){
+  const url=(document.getElementById('cfgUrl').value||'').trim().replace(/\/+$/,'');
+  const key=(document.getElementById('cfgKey').value||'').trim();
+  const st=document.getElementById('cfgStatus');
+  if(!/^https:\/\//.test(url)){ st.textContent='URL 格式不对，应类似 https://xxxx.supabase.co'; return; }
+  if(key.length<20){ st.textContent='anon key 看起来不完整，请到 Supabase → Settings → API 复制 anon public key'; return; }
+  st.textContent='正在测试连接…';
+  const prev={url:CLOUD.url,key:CLOUD.key};
+  CLOUD.url=url; CLOUD.key=key;
+  try{
+    await cloudSet('connection_test', String(Date.now()));
+    await cloudGet('connection_test');
+    localStorage.setItem(CFG_KEY, JSON.stringify({url:CLOUD.url,key:CLOUD.key,table:CLOUD.table}));
+    st.textContent='✓ 连接成功！点「开启家庭同步」，再把邀请链接发给家人。';
+    updateSyncUI();
+  }catch(e){
+    CLOUD.url=prev.url; CLOUD.key=prev.key;
+    st.textContent='连接失败：请确认已在 Supabase SQL Editor 运行过 setup.sql，且 URL 与 key 正确。';
+  }
+}
+async function copyInvite(){
+  const link=cfgLink();
+  const st=document.getElementById('inviteStatus');
+  try{ await navigator.clipboard.writeText(link); st.textContent='✓ 已复制！发到家庭群，家人打开即自动配置。'; }
+  catch(e){ st.textContent='自动复制被拦截，请手动复制：'+link; }
+}
+async function initSync(){
+  try{
+    if(window.storage){
+      const r = await window.storage.get(SYNC_PREF_KEY);
+      if(r && r.value){ const v = JSON.parse(r.value); if(v.deviceId) deviceId = v.deviceId; syncOn = !!v.on; }
+    }
+  }catch(e){}
+  if(!deviceId){ deviceId = uid()+uid(); persistSyncPref(); }
+  if(syncOn){ await pullShared(false); startPolling(); }
+}
+
+/* ============ EVENTS ============ */
+document.addEventListener('click', e=>{
+  if(e.target.closest('#cfgSave')){ saveCloudCfg(); return; }
+  if(e.target.closest('#inviteCopy')){ copyInvite(); return; }
+  if(e.target.closest('#syncToggle')){
+    if(syncOn){ disableSync(); showToastMsg('已切换回本机模式（共享数据保留）'); }
+    else { enableSync(); }
+    return;
+  }
+  if(e.target.closest('#expandAll')){ setAllDaysOpen(true); return; }
+  if(e.target.closest('#collapseAll')){ setAllDaysOpen(false); return; }
+  if(e.target.closest('#exportBtn')){ openExport(); return; }
+  if(e.target.closest('#copyBtn')){ doCopy(); return; }
+  if(e.target.closest('#exportClose') || e.target.closest('#exportClose2')){ document.getElementById('exportWrap').hidden=true; return; }
+  if(e.target.closest('#confirmYes')){ const fn=_confirmYes; closeConfirm(); if(fn) fn(); return; }
+  if(e.target.closest('#confirmNo')){ const fn=_confirmNo; closeConfirm(); if(fn) fn(); return; }
+  if(e.target.closest('#confirmNo2')){ closeConfirm(); return; }
+  if(e.target.closest('#sheetSave')){ saveEditor(); return; }
+  if(e.target.closest('#sheetCancel') || e.target.closest('#sheetBackdrop')){ closeEditor(); return; }
+  if(e.target.closest('#sheetDelete')){ deleteItem(); return; }
+  if(e.target.closest('#sheetBooked')){ document.getElementById('sheetBooked').classList.toggle('on'); return; }
+
+  const addRow = e.target.closest('.add-row');
+  if(addRow){
+    const kind = addRow.dataset.add;
+    const di = (addRow.dataset.dayidx!=null) ? parseInt(addRow.dataset.dayidx,10) : null;
+    openEditor({ mode:'add', kind, dayIdx:di });
+    return;
+  }
+
+  const row = e.target.closest('.row');
+  if(row){
+    if(editMode && row.dataset.kind){
+      openEditor({ mode:'edit', kind:row.dataset.kind, itemId:row.dataset.id,
+        dayIdx: (row.dataset.dayidx!=null) ? parseInt(row.dataset.dayidx,10) : null });
+      return;
+    }
+    const id = row.dataset.id;
+    state.checked[id] = !state.checked[id];
+    row.classList.toggle('done', state.checked[id]);
+    saveState(); updateProgress();
+    return;
+  }
+
+  const dayH = e.target.closest('.day-h');
+  if(dayH){
+    const day = dayH.parentElement;
+    const open = day.classList.toggle('open');
+    state.open['day'+day.dataset.day] = open;
+    saveState();
+    return;
+  }
+
+  const tab = e.target.closest('.tab');
+  if(tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector('.panel[data-panel="'+tab.dataset.tab+'"]').classList.add('active');
+    if(tab.dataset.tab==='daily'){ const t=document.querySelector('.day.today'); if(t){ setTimeout(()=>t.scrollIntoView({block:'center'}),60); } else { window.scrollTo({top:0}); } }
+    else { window.scrollTo({top:0}); }
+    return;
+  }
+});
+
+document.getElementById('editFab').addEventListener('click', ()=>{
+  editMode = !editMode;
+  document.body.classList.toggle('editing', editMode);
+  document.getElementById('fabText').textContent = editMode ? '完成' : '编辑';
+  document.querySelector('#editFab .fic').textContent = editMode ? '✓' : '✎';
+});
+
+document.getElementById('resetPack').addEventListener('click', ()=>{
+  state.pack.forEach(p=>{ state.checked[p.id]=false; });
+  document.querySelectorAll('#packList .row').forEach(r=>r.classList.remove('done'));
+  saveState(); updateProgress();
+});
+
+document.getElementById('resetAll').addEventListener('click', ()=>{
+  uiConfirm('清除所有勾选记录？（保留住宿预订状态，不删除你的修改与新增项）', '清除', ()=>{
+    const keep = {};
+    state.hotels.forEach(h=>{ if(state.checked[h.id]) keep[h.id]=true; });
+    state.checked = keep; state.open = {};
+    saveState(); render();
+    document.querySelector('.tab[data-tab="prep"]').click();
+  });
+});
+
+document.getElementById('restoreDefaults').addEventListener('click', ()=>{
+  uiConfirm('恢复默认行程会清除你所有的修改、新增和移动，无法撤销。确定继续？', '恢复默认', ()=>{
+    state.checked = {}; state.open = {};
+    seedFromDefaults({});
+    saveState(); render();
+    document.querySelector('.tab[data-tab="daily"]').click();
+  });
+});
+
+/* ============ INIT ============ */
+(async function init(){
+  await loadState();
+  await initSync();
+  render();
+  updateCountdown();
+  updateSyncUI();
+  if(!storageOK){
+    const n = document.getElementById('saveNote');
+    n.textContent = '提示：此环境无法持久保存，修改与勾选仅在本次会话有效。';
+    n.className = 'savenote warn';
+  }
+})();
+</script>
+</body>
+</html>
