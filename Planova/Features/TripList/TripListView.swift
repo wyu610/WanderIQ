@@ -21,8 +21,7 @@ struct TripListView: View {
             }
             .navigationTitle("Trips")
             .navigationDestination(for: UUID.self) { id in
-                // Replaced with TripDetailView in Task 10.
-                Text(model.store.trip(id: id)?.name ?? "")
+                TripDetailView(tripID: id)
             }
             .toolbar {
                 Button {
