@@ -12,6 +12,8 @@ final class AppModel {
     init() {
         let dir = URL.applicationSupportDirectory.appendingPathComponent("trips")
         self.repository = TripRepository(directory: dir)
+        // TODO: load per-file so one corrupt trip document doesn't hide all
+        // trips (files stay on disk either way; spec: surface a banner).
         let trips = (try? repository.loadAll()) ?? []
         self.store = TripStore(trips: trips)
         seedIfNeeded()

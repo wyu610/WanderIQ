@@ -63,6 +63,9 @@ struct ItemEditorView: View {
                 }
                 Section {
                     Toggle("Reminder", isOn: $hasReminder.animation())
+                        .onChange(of: hasReminder) { _, isOn in
+                            if isOn { Task { await ReminderScheduler.requestAuthorization() } }
+                        }
                     if hasReminder {
                         DatePicker("", selection: $reminderDate, displayedComponents: [.date, .hourAndMinute])
                             .labelsHidden()
