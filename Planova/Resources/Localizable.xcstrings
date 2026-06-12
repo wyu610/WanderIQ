@@ -1,55 +1,567 @@
 {
   "sourceLanguage" : "en",
-  "version" : "1.0",
   "strings" : {
-    "Trips" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "行程" } } } },
-    "New Trip" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新建行程" } } } },
-    "Name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "名称" } } } },
-    "Start" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始日期" } } } },
-    "End" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束日期" } } } },
-    "Save" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } } } },
-    "Cancel" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } } } },
-    "Delete" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除" } } } },
-    "Edit" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑" } } } },
-    "Prep" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "行前准备" } } } },
-    "Itinerary" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每日行程" } } } },
-    "Packing" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "出门清单" } } } },
-    "Bookings" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关键预订" } } } },
-    "Hotels" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "住宿" } } } },
-    "Documents" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "证件 · 出行准备" } } } },
-    "Add Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加项目" } } } },
-    "New Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新增项目" } } } },
-    "Edit Item" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑项目" } } } },
-    "Notes" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "备注" } } } },
-    "Owner" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负责人" } } } },
-    "Day" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日期" } } } },
-    "Time" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "时间" } } } },
-    "Reminder" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提醒" } } } },
-    "Reset packing list" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置出门清单" } } } },
-    "Today" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } } } },
-    "Trip not found" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到行程" } } } },
-    "Share Trip" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共享行程" } } } },
-    "Sharing failed" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共享失败" } } } },
-    "OK" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "好" } } } },
-    "Synced with iCloud" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已与 iCloud 同步" } } } },
-    "Syncing…" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在同步…" } } } },
-    "Sign in to iCloud to sync" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录 iCloud 以同步" } } } },
-    "iCloud is restricted" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 受限" } } } },
-    "iCloud temporarily unavailable" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 暂时不可用" } } } },
-    "iCloud unavailable" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 不可用" } } } },
-    "This trip hasn't finished syncing yet — try again in a moment." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此行程尚未完成同步，请稍后再试。" } } } },
-    "Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点" } } } },
-    "Attach Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加地点" } } } },
-    "Remove Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "移除地点" } } } },
-    "Place name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点名称" } } } },
-    "Search for a place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索地点" } } } },
-    "Type a name and press Search." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入名称后按搜索。" } } } },
-    "Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地图" } } } },
-    "Day Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当日地图" } } } },
-    "Done" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } } } },
-    "No places on this day" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日暂无地点" } } } },
-    "Attach places to items to see them here." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为行程项目添加地点后会显示在这里。" } } } },
-    "No results" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到结果" } } } },
-    "Check the name or try a different spelling." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请检查名称或尝试其他写法。" } } } }
-  }
+    "–" : {
+      "comment" : "A separator between the start and end dates of a trip.",
+      "isCommentAutoGenerated" : true
+    },
+    "%@ %@" : {
+      "comment" : "A day option in a picker view. The first argument is the formatted date of the day. The second argument is the day's title.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@/%@" : {
+      "comment" : "A count of completed and total items.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@/%2$@"
+          }
+        }
+      }
+    },
+    "Add Item" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加项目"
+          }
+        }
+      }
+    },
+    "Attach Place" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加地点"
+          }
+        }
+      }
+    },
+    "Attach places to items to see them here." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为行程项目添加地点后会显示在这里。"
+          }
+        }
+      }
+    },
+    "Bookings" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关键预订"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "Check the name or try a different spelling." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请检查名称或尝试其他写法。"
+          }
+        }
+      }
+    },
+    "Day" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日期"
+          }
+        }
+      }
+    },
+    "Day Map" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当日地图"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除"
+          }
+        }
+      }
+    },
+    "Documents" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "证件 · 出行准备"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
+    },
+    "Edit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
+          }
+        }
+      }
+    },
+    "Edit Item" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑项目"
+          }
+        }
+      }
+    },
+    "End" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束日期"
+          }
+        }
+      }
+    },
+    "Hotels" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "住宿"
+          }
+        }
+      }
+    },
+    "iCloud is restricted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 受限"
+          }
+        }
+      }
+    },
+    "iCloud temporarily unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 暂时不可用"
+          }
+        }
+      }
+    },
+    "iCloud unavailable" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 不可用"
+          }
+        }
+      }
+    },
+    "Itinerary" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日行程"
+          }
+        }
+      }
+    },
+    "Map" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地图"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称"
+          }
+        }
+      }
+    },
+    "New Item" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增项目"
+          }
+        }
+      }
+    },
+    "New Trip" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建行程"
+          }
+        }
+      }
+    },
+    "No places on this day" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日暂无地点"
+          }
+        }
+      }
+    },
+    "No results" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到结果"
+          }
+        }
+      }
+    },
+    "Notes" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备注"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "好"
+          }
+        }
+      }
+    },
+    "Owner" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负责人"
+          }
+        }
+      }
+    },
+    "Packing" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出门清单"
+          }
+        }
+      }
+    },
+    "Place" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地点"
+          }
+        }
+      }
+    },
+    "Place name" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地点名称"
+          }
+        }
+      }
+    },
+    "Prep" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行前准备"
+          }
+        }
+      }
+    },
+    "Reminder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒"
+          }
+        }
+      }
+    },
+    "Remove Place" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除地点"
+          }
+        }
+      }
+    },
+    "Reset packing list" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置出门清单"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
+    "Search for a place" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索地点"
+          }
+        }
+      }
+    },
+    "Share Trip" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享行程"
+          }
+        }
+      }
+    },
+    "Sharing failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享失败"
+          }
+        }
+      }
+    },
+    "Sign in to iCloud to sync" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录 iCloud 以同步"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始日期"
+          }
+        }
+      }
+    },
+    "Synced with iCloud" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已与 iCloud 同步"
+          }
+        }
+      }
+    },
+    "Syncing…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在同步…"
+          }
+        }
+      }
+    },
+    "This trip hasn't finished syncing yet — try again in a moment." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此行程尚未完成同步，请稍后再试。"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日"
+          }
+        }
+      }
+    },
+    "Trip not found" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到行程"
+          }
+        }
+      }
+    },
+    "Trips" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行程"
+          }
+        }
+      }
+    },
+    "Type a name and press Search." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入名称后按搜索。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
 }
