@@ -13,7 +13,8 @@ targets:
     sources: [Planova]
     dependencies:
       - package: PlanovaKit
-    scheme: {}
+    scheme:
+      testTargets: [PlanovaUITests]
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
@@ -24,3 +25,12 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
         INFOPLIST_KEY_CFBundleLocalizations: "en zh-Hans"
+  PlanovaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [PlanovaUITests]
+    dependencies:
+      - target: Planova
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
