@@ -22,25 +22,27 @@ let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
 ctx.drawLinearGradient(gradient, start: CGPoint(x: 0, y: sf),
                        end: CGPoint(x: sf, y: 0), options: [])
 
-// White location pin: circle head + tapering point.
+// White location pin: full circle head over a triangular tail.
+// (Origin is bottom-left; +y is up.)
 ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
-let cx: CGFloat = 512, cy: CGFloat = 580, r: CGFloat = 230
-let pin = CGMutablePath()
-pin.addArc(center: CGPoint(x: cx, y: cy), radius: r,
-           startAngle: .pi * 1.25, endAngle: .pi * -0.25, clockwise: false)
-pin.addLine(to: CGPoint(x: cx, y: cy - r - 210))
-pin.closeSubpath()
-ctx.addPath(pin)
+let cx: CGFloat = 512, cy: CGFloat = 600, r: CGFloat = 230
+let tail = CGMutablePath()
+tail.move(to: CGPoint(x: cx - 132, y: cy - 186))
+tail.addLine(to: CGPoint(x: cx + 132, y: cy - 186))
+tail.addLine(to: CGPoint(x: cx, y: 220))
+tail.closeSubpath()
+ctx.addPath(tail)
 ctx.fillPath()
+ctx.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
 
 // Teal checkmark inside the pin head.
 ctx.setStrokeColor(CGColor(red: 0.06, green: 0.34, blue: 0.44, alpha: 1))
 ctx.setLineWidth(72)
 ctx.setLineCap(.round)
 ctx.setLineJoin(.round)
-ctx.move(to: CGPoint(x: cx - 105, y: cy + 10))
-ctx.addLine(to: CGPoint(x: cx - 25, y: cy - 75))
-ctx.addLine(to: CGPoint(x: cx + 120, y: cy + 95))
+ctx.move(to: CGPoint(x: cx - 110, y: cy + 5))
+ctx.addLine(to: CGPoint(x: cx - 30, y: cy - 80))
+ctx.addLine(to: CGPoint(x: cx + 115, y: cy + 90))
 ctx.strokePath()
 
 let cgImage = ctx.makeImage()!
