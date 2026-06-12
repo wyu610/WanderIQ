@@ -207,7 +207,7 @@ final class SyncCoordinator {
             if localModified > serverModified {
                 engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
             } else {
-                applyFetchedRecord(serverRecord)   // accept server copy locally (Task 7)
+                applyFetchedRecord(serverRecord)   // accept server copy locally
             }
             _ = tripID
         case .zoneNotFound:
@@ -223,8 +223,46 @@ final class SyncCoordinator {
         }
     }
 
-    /// Stub until Task 7.
-    private func applyFetchedRecord(_ record: CKRecord) {}
+    // MARK: - Fetch path (Task 7)
+
+    private func applyFetchedRecord(_ record: CKRecord) {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName) else { return }
+        store.upsertRemote(tripID: tripID) { trip in
+            switch record.recordType {
+            case "TripMeta":
+                CloudKitMapping.applyTripMeta(record, to: &trip)
+            case "TripDay":
+                guard let day = CloudKitMapping.day(from: record) else { return }
+                if let i = trip.days.firstIndex(where: { $0.id == day.id }) {
+                    trip.days[i] = day
+                } else {
+                    trip.days.append(day)
+                    trip.days.sort { $0.date < $1.date }
+                }
+            case "ChecklistItem":
+                guard let item = CloudKitMapping.item(from: record) else { return }
+                if let i = trip.items.firstIndex(where: { $0.id == item.id }) {
+                    trip.items[i] = item
+                } else {
+                    trip.items.append(item)
+                }
+            default:
+                break
+            }
+        }
+        // Keep the diff baseline in sync so remote applies don't echo back up.
+        if let updated = store.trip(id: tripID) { lastKnown[tripID] = updated }
+    }
+
+    private func applyFetchedDeletion(_ recordID: CKRecord.ID) {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: recordID.zoneID.zoneName),
+              let entityID = UUID(uuidString: recordID.recordName) else { return }
+        store.upsertRemote(tripID: tripID) { trip in
+            trip.items.removeAll { $0.id == entityID }
+            trip.days.removeAll { $0.id == entityID }
+        }
+        if let updated = store.trip(id: tripID) { lastKnown[tripID] = updated }
+    }
 }
 
 // MARK: - CKSyncEngineDelegate
@@ -241,8 +279,10 @@ extension SyncCoordinator: CKSyncEngineDelegate {
 
     // SDK adaptation: RecordZoneChangeBatch.init(pendingChanges:recordProvider:) is
     // declared `async` in the Xcode 26.5 SDK (it was non-async in the WWDC23 sample).
-    // We use the synchronous init(recordsToSave:recordIDsToDelete:) instead, resolving
-    // records inline on the main actor.
+    // Therefore nextRecordZoneChangeBatch must be async (already is), and makeBatch
+    // must also be async. The recordProvider closure is @Sendable async, so we use
+    // MainActor.assumeIsolated inside it (we're guaranteed to be on main actor because
+    // makeBatch is called from nextRecordZoneChangeBatch which awaits onto MainActor).
     nonisolated func nextRecordZoneChangeBatch(
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
@@ -262,11 +302,42 @@ extension SyncCoordinator: CKSyncEngineDelegate {
                 handleFailedSave(failed.record, error: failed.error, engine: engine)
             }
 
+        case .fetchedDatabaseChanges(let changes):
+            for deletion in changes.deletions {
+                if let tripID = CloudKitMapping.tripID(fromZoneName: deletion.zoneID.zoneName) {
+                    store.removeRemote(tripID: tripID)
+                    lastKnown[tripID] = nil
+                    sharedTripIDs.remove(tripID)
+                }
+            }
+            for modification in changes.modifications where engine === sharedEngine {
+                // A zone appearing in the shared DB = a trip shared with us.
+                if let tripID = CloudKitMapping.tripID(fromZoneName: modification.zoneID.zoneName) {
+                    noteShared(tripID: tripID, ownerName: modification.zoneID.ownerName)
+                }
+            }
+
+        case .fetchedRecordZoneChanges(let changes):
+            for modification in changes.modifications {
+                if engine === sharedEngine,
+                   let tripID = CloudKitMapping.tripID(fromZoneName: modification.record.recordID.zoneID.zoneName) {
+                    noteShared(tripID: tripID, ownerName: modification.record.recordID.zoneID.ownerName)
+                }
+                applyFetchedRecord(modification.record)
+            }
+            for deletion in changes.deletions {
+                applyFetchedDeletion(deletion.recordID)
+            }
+
         default:
-            break   // fetch events implemented in Task 7
+            break
         }
     }
 
+    // SDK adaptation: RecordZoneChangeBatch(pendingChanges:recordProvider:) is async,
+    // so this method returns an async-initialised batch wrapped in Optional.
+    // We cannot call async from sync; instead we build the batch synchronously using
+    // the non-async init(recordsToSave:recordIDsToDelete:) by resolving records inline.
     private func makeBatch(context: CKSyncEngine.SendChangesContext,
                            engine: CKSyncEngine) -> CKSyncEngine.RecordZoneChangeBatch? {
         let pending = engine.state.pendingRecordZoneChanges.filter { context.options.scope.contains($0) }
