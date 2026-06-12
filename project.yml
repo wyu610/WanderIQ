@@ -3,6 +3,9 @@ options:
   bundleIdPrefix: com.planova
   deploymentTarget:
     iOS: "17.0"
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
 packages:
   PlanovaKit:
     path: PlanovaKit
@@ -15,16 +18,21 @@ targets:
       - package: PlanovaKit
     scheme:
       testTargets: [PlanovaUITests]
+    entitlements:
+      path: Planova.entitlements
+    info:
+      path: Planova/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: Planova
+        CFBundleLocalizations: [en, zh-Hans]
+        UIBackgroundModes: [remote-notification]
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
-        GENERATE_INFOPLIST_FILE: true
-        INFOPLIST_KEY_UILaunchScreen_Generation: true
-        INFOPLIST_KEY_CFBundleDisplayName: Planova
         CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 0.1.0
-        INFOPLIST_KEY_CFBundleLocalizations: "en zh-Hans"
+        MARKETING_VERSION: 0.2.0
   PlanovaUITests:
     type: bundle.ui-testing
     platform: iOS
