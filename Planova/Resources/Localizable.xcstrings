@@ -43,6 +43,7 @@
     "Remove Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "移除地点" } } } },
     "Place name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点名称" } } } },
     "Search for a place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索地点" } } } },
-    "Type a name and press Search." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入名称后按搜索。" } } } }
+    "Type a name and press Search." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入名称后按搜索。" } } } },
+    "Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地图" } } } }
   }
 }

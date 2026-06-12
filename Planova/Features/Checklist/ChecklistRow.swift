@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import PlanovaKit
 
 /// What the item editor sheet was opened for.
@@ -41,6 +42,11 @@ struct ChecklistRow: View {
                                 .background(.orange.opacity(0.15), in: Capsule())
                                 .foregroundStyle(.orange)
                         }
+                        if item.place != nil {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.caption2)
+                                .foregroundStyle(.teal)
+                        }
                     }
                     if !item.notes.isEmpty {
                         Text(item.notes)
@@ -64,6 +70,16 @@ struct ChecklistRow: View {
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button("Edit", action: onEdit).tint(.blue)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            if let place = item.place {
+                Button {
+                    UIApplication.shared.open(MapLink.url(for: place))
+                } label: {
+                    Label("Map", systemImage: "map")
+                }
+                .tint(.teal)
+            }
         }
     }
 }
