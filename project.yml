@@ -33,6 +33,10 @@ targets:
         CFBundleDisplayName: WanderIQ
         CFBundleLocalizations: [en, zh-Hans]
         UIBackgroundModes: [remote-notification]
+        # Wire versions to build settings; XcodeGen otherwise hardcodes 1.0/1
+        # and MARKETING_VERSION never reaches the binary.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # ASC upload validation (error 90474) requires these; iPad must list
         # all four orientations because the app doesn't require full screen.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
@@ -42,7 +46,10 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
         CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 0.3.0
+        # 1.0 (1) is what actually shipped to TestFlight on 2026-06-12 (the
+        # old 0.3.0 here never reached binaries). Bump CURRENT_PROJECT_VERSION
+        # for each new upload of the same marketing version.
+        MARKETING_VERSION: "1.0"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   WanderIQUITests:
     type: bundle.ui-testing
