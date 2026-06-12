@@ -33,6 +33,7 @@ final class AppModel {
             self?.refreshReminders()
         }
         Task { await sync.start() }
+        AppDelegate.sharedModel = self
     }
 
     // MARK: - Intents (views call these, not the store directly)

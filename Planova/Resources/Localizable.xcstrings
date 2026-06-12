@@ -27,6 +27,9 @@
     "Reminder" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提醒" } } } },
     "Reset packing list" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重置出门清单" } } } },
     "Today" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } } } },
-    "Trip not found" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到行程" } } } }
+    "Trip not found" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到行程" } } } },
+    "Share Trip" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共享行程" } } } },
+    "Sharing failed" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共享失败" } } } },
+    "OK" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "好" } } } }
   }
 }

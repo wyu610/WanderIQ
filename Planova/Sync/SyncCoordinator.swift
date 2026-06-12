@@ -282,6 +282,50 @@ final class SyncCoordinator {
         }
     }
 
+    // MARK: - Sharing (Task 8)
+
+    /// Fetch the zone-wide share for a trip, creating it if needed.
+    /// Zone-wide shares have the fixed record name CKRecordNameZoneWideShare.
+    func share(for trip: Trip) async throws -> CKShare {
+        let zoneID = CloudKitMapping.zoneID(forTripID: trip.id, owner: owner(for: trip.id))
+        let database = sharedTripIDs.contains(trip.id)
+            ? container.sharedCloudDatabase : container.privateCloudDatabase
+        let shareID = CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)
+        // Adaptation: bind the result first, then conditionally cast to avoid
+        // a "conditional downcast from 'CKRecord' to 'CKShare' always succeeds"
+        // compiler warning on some SDK versions.
+        if let fetched = try? await database.record(for: shareID) {
+            if let existing = fetched as? CKShare { return existing }
+        }
+        let share = CKShare(recordZoneID: zoneID)
+        share[CKShare.SystemFieldKey.title] = trip.name
+        share.publicPermission = .none
+        let (saved, _) = try await database.modifyRecords(saving: [share], deleting: [])
+        for result in saved.values {
+            if case .success(let record) = result, let savedShare = record as? CKShare {
+                return savedShare
+            }
+        }
+        return share
+    }
+
+    var cloudKitContainer: CKContainer { container }
+
+    /// Accept an incoming share invitation, then fetch the new shared zone.
+    func acceptShare(metadata: CKShare.Metadata) async {
+        do {
+            try await container.accept(metadata)
+            await fetchNow()
+        } catch {
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    var isAvailable: Bool {
+        if case .unavailable = status { return false }
+        return true
+    }
+
     // MARK: - Fetch path (Task 7)
 
     private func applyFetchedRecord(_ record: CKRecord) {

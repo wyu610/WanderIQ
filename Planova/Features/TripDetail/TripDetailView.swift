@@ -1,9 +1,12 @@
 import SwiftUI
+import CloudKit
 import PlanovaKit
 
 struct TripDetailView: View {
     @Environment(AppModel.self) private var model
     let tripID: UUID
+    @State private var activeShare: CKShare?
+    @State private var shareError: String?
 
     var body: some View {
         if let trip = model.store.trip(id: tripID) {
@@ -17,8 +20,34 @@ struct TripDetailView: View {
             }
             .navigationTitle(trip.name)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                Button {
+                    Task {
+                        do { activeShare = try await model.sync.share(for: trip) }
+                        catch { shareError = error.localizedDescription }
+                    }
+                } label: {
+                    Image(systemName: "person.crop.circle.badge.plus")
+                }
+                .disabled(!model.sync.isAvailable)
+                .accessibilityLabel("Share Trip")
+            }
+            .sheet(item: $activeShare) { share in
+                CloudSharingView(share: share, container: model.sync.cloudKitContainer)
+            }
+            .alert("Sharing failed", isPresented: .constant(shareError != nil)) {
+                Button("OK") { shareError = nil }
+            } message: {
+                Text(shareError ?? "")
+            }
         } else {
             ContentUnavailableView("Trip not found", systemImage: "questionmark.circle")
         }
     }
+}
+
+// Adaptation note: @retroactive is valid in Swift 5.7+/5.10. If the compiler
+// rejects it for a specific SDK, drop the attribute and silence the warning.
+extension CKShare: @retroactive Identifiable {
+    public var id: CKRecord.ID { recordID }
 }
