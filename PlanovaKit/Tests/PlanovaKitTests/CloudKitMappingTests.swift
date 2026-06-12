@@ -1,0 +1,70 @@
+import Testing
+import CloudKit
+@testable import PlanovaKit
+
+@Suite struct CloudKitMappingTests {
+
+    private func sampleTrip() -> Trip {
+        let day = TripDay(date: Date(timeIntervalSince1970: 1_700_000_000), city: "上海", title: "抵达上海")
+        let item = ChecklistItem(kind: .itinerary, label: "酒店早餐", notes: "n",
+                                 dayID: day.id, time: "08:00", owner: "全家",
+                                 isDone: true, sortOrder: 7,
+                                 reminderDate: Date(timeIntervalSince1970: 1_700_100_000),
+                                 place: Place(name: "P", query: "Q", latitude: 31.2, longitude: 121.5),
+                                 modifiedAt: Date(timeIntervalSince1970: 1_700_000_500))
+        return Trip(name: "T", startDate: Date(timeIntervalSince1970: 0),
+                    endDate: Date(timeIntervalSince1970: 86_400),
+                    destinations: ["上海", "香港"], days: [day], items: [item])
+    }
+
+    @Test func zoneIDEncodesTripID() {
+        let trip = sampleTrip()
+        let zone = CloudKitMapping.zoneID(forTripID: trip.id)
+        #expect(zone.zoneName == "trip-\(trip.id.uuidString)")
+        #expect(CloudKitMapping.tripID(fromZoneName: zone.zoneName) == trip.id)
+        #expect(CloudKitMapping.tripID(fromZoneName: "garbage") == nil)
+    }
+
+    @Test func tripMetaRoundTrip() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.tripMetaRecord(for: trip)
+        #expect(record.recordType == "TripMeta")
+        #expect(record.recordID.recordName == "trip-meta")
+        var shell = Trip(name: "", startDate: Date(), endDate: Date())
+        CloudKitMapping.applyTripMeta(record, to: &shell)
+        #expect(shell.name == trip.name)
+        #expect(shell.startDate == trip.startDate)
+        #expect(shell.endDate == trip.endDate)
+        #expect(shell.destinations == trip.destinations)
+        #expect(shell.schemaVersion == trip.schemaVersion)
+    }
+
+    @Test func dayRoundTrip() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.dayRecord(for: trip.days[0], tripID: trip.id)
+        #expect(record.recordType == "TripDay")
+        let parsed = CloudKitMapping.day(from: record)
+        #expect(parsed == trip.days[0])
+    }
+
+    @Test func itemRoundTripIncludingPlaceAndNils() {
+        let trip = sampleTrip()
+        let full = CloudKitMapping.itemRecord(for: trip.items[0], tripID: trip.id)
+        #expect(full.recordType == "ChecklistItem")
+        #expect(CloudKitMapping.item(from: full) == trip.items[0])
+
+        let bare = ChecklistItem(kind: .packing, label: "护照")
+        let bareRecord = CloudKitMapping.itemRecord(for: bare, tripID: trip.id)
+        let parsedBare = CloudKitMapping.item(from: bareRecord)
+        #expect(parsedBare == bare)
+        #expect(parsedBare?.place == nil)
+        #expect(parsedBare?.dayID == nil)
+    }
+
+    @Test func unknownKindParsesAsNil() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.itemRecord(for: trip.items[0], tripID: trip.id)
+        record["kind"] = "future-kind"
+        #expect(CloudKitMapping.item(from: record) == nil)
+    }
+}
