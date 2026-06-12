@@ -20,7 +20,10 @@ final class AppModel {
         self.sync = SyncCoordinator(store: store,
                                     stateDirectory: URL.applicationSupportDirectory.appendingPathComponent("sync"))
         seedIfNeeded()
-        store.onChange = { [weak self] trip in self?.scheduleSave(trip) }
+        store.onChange = { [weak self] trip in
+            self?.scheduleSave(trip)
+            self?.sync.noteLocalChange(trip)
+        }
         store.onRemoteChange = { [weak self] trip in
             self?.scheduleSave(trip)
             self?.refreshReminders()
@@ -40,6 +43,7 @@ final class AppModel {
     }
 
     func deleteTrip(id: UUID) {
+        sync.noteLocalDelete(tripID: id)
         store.deleteTrip(id: id)
         try? repository.delete(id: id)
         refreshReminders()

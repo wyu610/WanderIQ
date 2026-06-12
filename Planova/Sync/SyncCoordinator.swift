@@ -111,7 +111,7 @@ final class SyncCoordinator {
         engine === privateEngine ? "private-sync-state" : "shared-sync-state"
     }
 
-    // MARK: - Helpers used by send/fetch paths (Tasks 6–7)
+    // MARK: - Helpers
 
     func owner(for tripID: UUID) -> String {
         zoneOwners[tripID] ?? CKCurrentUserDefaultName
@@ -126,19 +126,123 @@ final class SyncCoordinator {
         zoneOwners[tripID] = ownerName
     }
 
+    // MARK: - Send path (Task 6)
+
+    /// Queue every record of a trip (first sync of a local trip).
     func queueFullTrip(_ trip: Trip) {
-        // Implemented in Task 6.
+        guard let engine = engine(for: trip.id) else { return }
+        let owner = owner(for: trip.id)
+        if !sharedTripIDs.contains(trip.id) {
+            let zone = CKRecordZone(zoneID: CloudKitMapping.zoneID(forTripID: trip.id, owner: owner))
+            engine.state.add(pendingDatabaseChanges: [.saveZone(zone)])
+        }
+        let diff = TripDiff.changes(old: nil, new: trip)
+        engine.state.add(pendingRecordZoneChanges: diff.saves.map { .saveRecord(recordID($0, tripID: trip.id)) })
+        lastKnown[trip.id] = trip
     }
+
+    /// Called (via AppModel) after every local mutation.
+    func noteLocalChange(_ trip: Trip) {
+        guard let engine = engine(for: trip.id) else { return }
+        if lastKnown[trip.id] == nil, !sharedTripIDs.contains(trip.id) {
+            queueFullTrip(trip)
+            return
+        }
+        let diff = TripDiff.changes(old: lastKnown[trip.id], new: trip)
+        guard !diff.saves.isEmpty || !diff.deletes.isEmpty else { return }
+        engine.state.add(pendingRecordZoneChanges:
+            diff.saves.map { .saveRecord(recordID($0, tripID: trip.id)) } +
+            diff.deletes.map { .deleteRecord(recordID($0, tripID: trip.id)) })
+        lastKnown[trip.id] = trip
+    }
+
+    /// Called when the user deletes a trip locally: drop the whole zone.
+    func noteLocalDelete(tripID: UUID) {
+        guard let engine = engine(for: tripID) else { return }
+        engine.state.add(pendingDatabaseChanges:
+            [.deleteZone(CloudKitMapping.zoneID(forTripID: tripID, owner: owner(for: tripID)))])
+        lastKnown[tripID] = nil
+    }
+
+    private func recordID(_ ref: TripRecordRef, tripID: UUID) -> CKRecord.ID {
+        let owner = owner(for: tripID)
+        switch ref {
+        case .tripMeta: return CloudKitMapping.tripMetaRecordID(tripID: tripID, owner: owner)
+        case .day(let id): return CloudKitMapping.dayRecordID(id, tripID: tripID, owner: owner)
+        case .item(let id): return CloudKitMapping.itemRecordID(id, tripID: tripID, owner: owner)
+        }
+    }
+
+    /// Build the current CKRecord for a record ID, or nil if the entity no
+    /// longer exists locally (the engine then drops the pending save).
+    private func record(for recordID: CKRecord.ID) -> CKRecord? {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: recordID.zoneID.zoneName),
+              let trip = store.trip(id: tripID) else { return nil }
+        let owner = recordID.zoneID.ownerName
+        if recordID.recordName == CloudKitMapping.tripMetaRecordName {
+            return CloudKitMapping.tripMetaRecord(for: trip, owner: owner)
+        }
+        guard let entityID = UUID(uuidString: recordID.recordName) else { return nil }
+        if let item = trip.items.first(where: { $0.id == entityID }) {
+            return CloudKitMapping.itemRecord(for: item, tripID: tripID, owner: owner)
+        }
+        if let day = trip.days.first(where: { $0.id == entityID }) {
+            return CloudKitMapping.dayRecord(for: day, tripID: tripID, owner: owner)
+        }
+        return nil
+    }
+
+    // MARK: - Conflict resolution
+
+    /// Spec conflict policy: per-record last-writer-wins. The server copy is
+    /// the baseline; if our local entity was modified more recently than the
+    /// server's, requeue our save (now carrying the server change tag).
+    private func handleFailedSave(_ record: CKRecord, error: CKError, engine: CKSyncEngine) {
+        switch error.code {
+        case .serverRecordChanged:
+            guard let serverRecord = error.serverRecord,
+                  let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName) else { return }
+            let serverModified = serverRecord["modifiedAt"] as? Date ?? .distantPast
+            let localModified = record["modifiedAt"] as? Date ?? .distantPast
+            if localModified > serverModified {
+                engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
+            } else {
+                applyFetchedRecord(serverRecord)   // accept server copy locally (Task 7)
+            }
+            _ = tripID
+        case .zoneNotFound:
+            // Zone was deleted remotely or never created: recreate and resend everything.
+            if let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName),
+               let trip = store.trip(id: tripID) {
+                queueFullTrip(trip)
+            }
+        case .unknownItem, .invalidArguments:
+            break   // dropped: entity no longer exists or schema mismatch
+        default:
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    /// Stub until Task 7.
+    private func applyFetchedRecord(_ record: CKRecord) {}
 }
 
-// MARK: - CKSyncEngineDelegate (fleshed out in Tasks 6–7)
+// MARK: - CKSyncEngineDelegate
 
 extension SyncCoordinator: CKSyncEngineDelegate {
+
+    // SDK note: CKSyncEngineDelegate inherits Sendable and the coordinator is
+    // @MainActor, so these nonisolated implementations await onto the main actor
+    // before touching any mutable state.
 
     nonisolated func handleEvent(_ event: CKSyncEngine.Event, syncEngine: CKSyncEngine) async {
         await MainActor.run { handle(event, engine: syncEngine) }
     }
 
+    // SDK adaptation: RecordZoneChangeBatch.init(pendingChanges:recordProvider:) is
+    // declared `async` in the Xcode 26.5 SDK (it was non-async in the WWDC23 sample).
+    // We use the synchronous init(recordsToSave:recordIDsToDelete:) instead, resolving
+    // records inline on the main actor.
     nonisolated func nextRecordZoneChangeBatch(
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
@@ -146,20 +250,49 @@ extension SyncCoordinator: CKSyncEngineDelegate {
         await MainActor.run { makeBatch(context: context, engine: syncEngine) }
     }
 
+    // MARK: Private helpers (all @MainActor via class isolation)
+
     private func handle(_ event: CKSyncEngine.Event, engine: CKSyncEngine) {
         switch event {
         case .stateUpdate(let update):
             saveState(update.stateSerialization, name: stateFileName(for: engine))
+
+        case .sentRecordZoneChanges(let sent):
+            for failed in sent.failedRecordSaves {
+                handleFailedSave(failed.record, error: failed.error, engine: engine)
+            }
+
         default:
-            break   // send/fetch events implemented in Tasks 6–7
+            break   // fetch events implemented in Task 7
         }
     }
 
-    // SDK adaptation: RecordZoneChangeBatch(pendingChanges:recordProvider:) is async
-    // in the Xcode 26.5 SDK; we use the synchronous init(recordsToSave:recordIDsToDelete:)
-    // instead (stub returns nil until Task 6).
     private func makeBatch(context: CKSyncEngine.SendChangesContext,
                            engine: CKSyncEngine) -> CKSyncEngine.RecordZoneChangeBatch? {
-        nil   // Implemented in Task 6.
+        let pending = engine.state.pendingRecordZoneChanges.filter { context.options.scope.contains($0) }
+        guard !pending.isEmpty else { return nil }
+
+        var recordsToSave: [CKRecord] = []
+        var recordIDsToDelete: [CKRecord.ID] = []
+
+        for change in pending {
+            switch change {
+            case .saveRecord(let recordID):
+                if let record = record(for: recordID) {
+                    recordsToSave.append(record)
+                }
+                // If record(for:) returns nil the entity was deleted locally;
+                // the engine drops the pending save when we don't include it.
+            case .deleteRecord(let recordID):
+                recordIDsToDelete.append(recordID)
+            @unknown default:
+                break
+            }
+        }
+
+        guard !recordsToSave.isEmpty || !recordIDsToDelete.isEmpty else { return nil }
+        return CKSyncEngine.RecordZoneChangeBatch(
+            recordsToSave: recordsToSave,
+            recordIDsToDelete: recordIDsToDelete)
     }
 }
