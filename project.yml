@@ -1,6 +1,8 @@
 name: WanderIQ
 options:
-  bundleIdPrefix: com.wanderiq
+  # App Store Connect app 6779690103 is registered as com.WanderIQ (prefix +
+  # target name); the iCloud container keeps iCloud.com.wanderiq.WanderIQ.
+  bundleIdPrefix: com
   deploymentTarget:
     iOS: "17.0"
 configFiles:
