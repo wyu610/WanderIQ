@@ -21,21 +21,31 @@ struct TripDetailView: View {
             .navigationTitle(trip.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                Button {
-                    Task {
-                        do { activeShare = try await model.sync.share(for: trip) }
-                        catch { shareError = error.localizedDescription }
+                // Participants can't manage someone else's share — only the
+                // owner sees the share button.
+                if !model.sync.sharedTripIDs.contains(trip.id) {
+                    Button {
+                        Task {
+                            do { activeShare = try await model.sync.share(for: trip) }
+                            catch { shareError = error.localizedDescription }
+                        }
+                    } label: {
+                        Image(systemName: "person.crop.circle.badge.plus")
                     }
-                } label: {
-                    Image(systemName: "person.crop.circle.badge.plus")
+                    .disabled(!model.sync.isAvailable)
+                    .accessibilityLabel("Share Trip")
                 }
-                .disabled(!model.sync.isAvailable)
-                .accessibilityLabel("Share Trip")
             }
             .sheet(item: $activeShare) { share in
-                CloudSharingView(share: share, container: model.sync.cloudKitContainer)
+                CloudSharingView(share: share,
+                                 container: model.sync.cloudKitContainer,
+                                 onStateChange: { Task { await model.sync.fetchNow() } },
+                                 onError: { shareError = $0.localizedDescription })
             }
-            .alert("Sharing failed", isPresented: .constant(shareError != nil)) {
+            .alert("Sharing failed", isPresented: Binding(
+                get: { shareError != nil },
+                set: { if !$0 { shareError = nil } }
+            )) {
                 Button("OK") { shareError = nil }
             } message: {
                 Text(shareError ?? "")

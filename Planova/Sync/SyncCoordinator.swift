@@ -300,13 +300,22 @@ final class SyncCoordinator {
         let share = CKShare(recordZoneID: zoneID)
         share[CKShare.SystemFieldKey.title] = trip.name
         share.publicPermission = .none
-        let (saved, _) = try await database.modifyRecords(saving: [share], deleting: [])
-        for result in saved.values {
-            if case .success(let record) = result, let savedShare = record as? CKShare {
-                return savedShare
+        do {
+            let (saved, _) = try await database.modifyRecords(saving: [share], deleting: [])
+            for result in saved.values {
+                if case .success(let record) = result, let savedShare = record as? CKShare {
+                    return savedShare
+                }
             }
+            return share
+        } catch let error as CKError where error.code == .zoneNotFound {
+            // The trip's zone hasn't reached the server yet (created offline
+            // or zone save still pending) — tell the user to retry rather
+            // than surfacing a cryptic CloudKit error.
+            throw NSError(domain: SyncCoordinator.containerID, code: Int(CKError.zoneNotFound.rawValue), userInfo: [
+                NSLocalizedDescriptionKey: String(localized: "This trip hasn't finished syncing yet — try again in a moment.")
+            ])
         }
-        return share
     }
 
     var cloudKitContainer: CKContainer { container }

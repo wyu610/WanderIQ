@@ -13,14 +13,15 @@ struct PlanovaApp: App {
                 .environment(model)
         }
     }
-
-    init() {}
 }
 
 /// Routes CloudKit share-invitation acceptance into the sync coordinator.
 /// SwiftUI apps receive userDidAcceptCloudKitShareWith via a scene delegate.
 final class AppDelegate: NSObject, UIApplicationDelegate {
-    static weak var sharedModel: AppModel?
+    @MainActor static weak var sharedModel: AppModel?
+    /// Metadata that arrived before AppModel finished initializing
+    /// (cold-start launch from a share link); drained by AppModel.init.
+    @MainActor static var pendingShareMetadata: CKShare.Metadata?
 
     func application(_ application: UIApplication,
                      configurationForConnecting connectingSceneSession: UISceneSession,
@@ -32,11 +33,29 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 }
 
 final class SceneDelegate: NSObject, UIWindowSceneDelegate {
+
+    /// Cold start from a share link: the metadata arrives in the connection
+    /// options, not via userDidAcceptCloudKitShareWith.
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        if let metadata = connectionOptions.cloudKitShareMetadata {
+            Self.accept(metadata)
+        }
+    }
+
+    /// Warm path: app already running when the user taps the invite.
     func windowScene(_ windowScene: UIWindowScene,
                      userDidAcceptCloudKitShareWith metadata: CKShare.Metadata) {
-        guard let model = AppDelegate.sharedModel else { return }
+        Self.accept(metadata)
+    }
+
+    private static func accept(_ metadata: CKShare.Metadata) {
         Task { @MainActor in
-            await model.sync.acceptShare(metadata: metadata)
+            if let model = AppDelegate.sharedModel {
+                await model.sync.acceptShare(metadata: metadata)
+            } else {
+                AppDelegate.pendingShareMetadata = metadata
+            }
         }
     }
 }

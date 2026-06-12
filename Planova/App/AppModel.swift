@@ -34,6 +34,10 @@ final class AppModel {
         }
         Task { await sync.start() }
         AppDelegate.sharedModel = self
+        if let pending = AppDelegate.pendingShareMetadata {
+            AppDelegate.pendingShareMetadata = nil
+            Task { await sync.acceptShare(metadata: pending) }
+        }
     }
 
     // MARK: - Intents (views call these, not the store directly)
