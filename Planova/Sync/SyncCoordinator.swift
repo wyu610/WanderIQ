@@ -56,6 +56,7 @@ final class SyncCoordinator {
             status = .unavailable(error.localizedDescription)
             return
         }
+        loadZoneOwners()
         lastKnown = Dictionary(uniqueKeysWithValues: store.trips.map { ($0.id, $0) })
         privateEngine = makeEngine(database: container.privateCloudDatabase, stateFile: "private-sync-state")
         sharedEngine = makeEngine(database: container.sharedCloudDatabase, stateFile: "shared-sync-state")
@@ -132,6 +133,37 @@ final class SyncCoordinator {
     func noteShared(tripID: UUID, ownerName: String) {
         sharedTripIDs.insert(tripID)
         zoneOwners[tripID] = ownerName
+        saveZoneOwners()
+    }
+
+    private func noteUnshared(tripID: UUID) {
+        sharedTripIDs.remove(tripID)
+        zoneOwners[tripID] = nil
+        saveZoneOwners()
+    }
+
+    // MARK: - Shared-zone ownership persistence
+    //
+    // Persisted so a cold-start edit to a shared trip targets the shared
+    // database immediately, instead of the private one until the first
+    // shared-DB fetch re-registers ownership.
+
+    private var zoneOwnersURL: URL {
+        stateDirectory.appendingPathComponent("zone-owners.json")
+    }
+
+    private func loadZoneOwners() {
+        guard let data = try? Data(contentsOf: zoneOwnersURL),
+              let dict = try? JSONDecoder().decode([UUID: String].self, from: data) else { return }
+        zoneOwners = dict
+        sharedTripIDs = Set(dict.keys)
+    }
+
+    private func saveZoneOwners() {
+        try? FileManager.default.createDirectory(at: stateDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(zoneOwners) {
+            try? data.write(to: zoneOwnersURL, options: .atomic)
+        }
     }
 
     // MARK: - Send path (Task 6)
@@ -342,7 +374,7 @@ extension SyncCoordinator: CKSyncEngineDelegate {
                 if let tripID = CloudKitMapping.tripID(fromZoneName: deletion.zoneID.zoneName) {
                     store.removeRemote(tripID: tripID)
                     lastKnown[tripID] = nil
-                    sharedTripIDs.remove(tripID)
+                    noteUnshared(tripID: tripID)
                 }
             }
             for modification in changes.modifications where engine === sharedEngine {
@@ -365,6 +397,8 @@ extension SyncCoordinator: CKSyncEngineDelegate {
             }
 
         default:
+            // Known v1 limitation: .accountChange (sign-out/sign-in mid-
+            // session) is not handled; engines rebuild on next app launch.
             break
         }
     }
