@@ -1,0 +1,459 @@
+import Foundation
+import CloudKit
+import Observation
+import WanderIQKit
+
+/// Owns the CloudKit sync engines (private + shared databases), persists
+/// their state serializations, and bridges between TripStore and CKRecords.
+/// All UI-facing state is @MainActor.
+@MainActor
+@Observable
+final class SyncCoordinator {
+
+    enum Status: Equatable {
+        case unavailable(String)   // no iCloud account / restricted
+        case idle
+        case syncing
+        case error(String)
+    }
+
+    private(set) var status: Status = .unavailable("Checking iCloud…")
+
+    static let containerID = "iCloud.com.wanderiq.WanderIQ"
+
+    private let container: CKContainer
+    private let store: TripStore
+    private let stateDirectory: URL
+    @ObservationIgnored private var privateEngine: CKSyncEngine?
+    @ObservationIgnored private var sharedEngine: CKSyncEngine?
+    /// Snapshot of each trip as of the last diff, for change detection.
+    @ObservationIgnored private var lastKnown: [UUID: Trip] = [:]
+    /// Trips that live in the shared database (we are a participant).
+    @ObservationIgnored private(set) var sharedTripIDs: Set<UUID> = []
+    /// Zone owner names for shared trips (needed to build record IDs).
+    @ObservationIgnored private var zoneOwners: [UUID: String] = [:]
+    /// Server-tagged base records from serverRecordChanged conflicts where
+    /// local wins; the retried save is built on top of these so it carries a
+    /// valid change tag. Evicted on successful send or entity deletion.
+    @ObservationIgnored private var conflictBaseRecords: [CKRecord.ID: CKRecord] = [:]
+
+    init(store: TripStore, stateDirectory: URL) {
+        self.container = CKContainer(identifier: Self.containerID)
+        self.store = store
+        self.stateDirectory = stateDirectory
+    }
+
+    // MARK: - Lifecycle
+
+    func start() async {
+        do {
+            let accountStatus = try await container.accountStatus()
+            guard accountStatus == .available else {
+                status = .unavailable(Self.describe(accountStatus))
+                return
+            }
+        } catch {
+            status = .unavailable(error.localizedDescription)
+            return
+        }
+        loadZoneOwners()
+        lastKnown = Dictionary(uniqueKeysWithValues: store.trips.map { ($0.id, $0) })
+        privateEngine = makeEngine(database: container.privateCloudDatabase, stateFile: "private-sync-state")
+        sharedEngine = makeEngine(database: container.sharedCloudDatabase, stateFile: "shared-sync-state")
+        status = .idle
+        // First run: ensure every local trip has a zone + records queued.
+        for trip in store.trips where !sharedTripIDs.contains(trip.id) {
+            queueFullTrip(trip)
+        }
+    }
+
+    private func makeEngine(database: CKDatabase, stateFile: String) -> CKSyncEngine {
+        var configuration = CKSyncEngine.Configuration(
+            database: database,
+            stateSerialization: loadState(stateFile),
+            delegate: self)
+        configuration.automaticallySync = true
+        return CKSyncEngine(configuration)
+    }
+
+    /// Manual refresh (pull-to-refresh / foreground), since simulator gets no push.
+    func fetchNow() async {
+        guard let privateEngine, let sharedEngine else { return }
+        status = .syncing
+        do {
+            try await privateEngine.fetchChanges()
+            try await sharedEngine.fetchChanges()
+            status = .idle
+        } catch {
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    private static func describe(_ s: CKAccountStatus) -> String {
+        switch s {
+        case .noAccount: return String(localized: "Sign in to iCloud to sync")
+        case .restricted: return String(localized: "iCloud is restricted")
+        case .temporarilyUnavailable: return String(localized: "iCloud temporarily unavailable")
+        default: return String(localized: "iCloud unavailable")
+        }
+    }
+
+    // MARK: - State serialization persistence
+
+    private func stateURL(_ name: String) -> URL {
+        stateDirectory.appendingPathComponent(name + ".data")
+    }
+
+    private func loadState(_ name: String) -> CKSyncEngine.State.Serialization? {
+        guard let data = try? Data(contentsOf: stateURL(name)) else { return nil }
+        return try? JSONDecoder().decode(CKSyncEngine.State.Serialization.self, from: data)
+    }
+
+    private func saveState(_ serialization: CKSyncEngine.State.Serialization, name: String) {
+        try? FileManager.default.createDirectory(at: stateDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(serialization) {
+            try? data.write(to: stateURL(name), options: .atomic)
+        }
+    }
+
+    private func stateFileName(for engine: CKSyncEngine) -> String {
+        engine === privateEngine ? "private-sync-state" : "shared-sync-state"
+    }
+
+    // MARK: - Helpers
+
+    func owner(for tripID: UUID) -> String {
+        zoneOwners[tripID] ?? CKCurrentUserDefaultName
+    }
+
+    func engine(for tripID: UUID) -> CKSyncEngine? {
+        sharedTripIDs.contains(tripID) ? sharedEngine : privateEngine
+    }
+
+    func noteShared(tripID: UUID, ownerName: String) {
+        sharedTripIDs.insert(tripID)
+        zoneOwners[tripID] = ownerName
+        saveZoneOwners()
+    }
+
+    private func noteUnshared(tripID: UUID) {
+        sharedTripIDs.remove(tripID)
+        zoneOwners[tripID] = nil
+        saveZoneOwners()
+    }
+
+    // MARK: - Shared-zone ownership persistence
+    //
+    // Persisted so a cold-start edit to a shared trip targets the shared
+    // database immediately, instead of the private one until the first
+    // shared-DB fetch re-registers ownership.
+
+    private var zoneOwnersURL: URL {
+        stateDirectory.appendingPathComponent("zone-owners.json")
+    }
+
+    private func loadZoneOwners() {
+        guard let data = try? Data(contentsOf: zoneOwnersURL),
+              let dict = try? JSONDecoder().decode([UUID: String].self, from: data) else { return }
+        zoneOwners = dict
+        sharedTripIDs = Set(dict.keys)
+    }
+
+    private func saveZoneOwners() {
+        try? FileManager.default.createDirectory(at: stateDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(zoneOwners) {
+            try? data.write(to: zoneOwnersURL, options: .atomic)
+        }
+    }
+
+    // MARK: - Send path (Task 6)
+
+    /// Queue every record of a trip (first sync of a local trip).
+    func queueFullTrip(_ trip: Trip) {
+        guard let engine = engine(for: trip.id) else { return }
+        let owner = owner(for: trip.id)
+        if !sharedTripIDs.contains(trip.id) {
+            let zone = CKRecordZone(zoneID: CloudKitMapping.zoneID(forTripID: trip.id, owner: owner))
+            engine.state.add(pendingDatabaseChanges: [.saveZone(zone)])
+        }
+        let diff = TripDiff.changes(old: nil, new: trip)
+        engine.state.add(pendingRecordZoneChanges: diff.saves.map { .saveRecord(recordID($0, tripID: trip.id)) })
+        lastKnown[trip.id] = trip
+    }
+
+    /// Called (via AppModel) after every local mutation.
+    func noteLocalChange(_ trip: Trip) {
+        guard let engine = engine(for: trip.id) else { return }
+        if lastKnown[trip.id] == nil, !sharedTripIDs.contains(trip.id) {
+            queueFullTrip(trip)
+            return
+        }
+        let diff = TripDiff.changes(old: lastKnown[trip.id], new: trip)
+        guard !diff.saves.isEmpty || !diff.deletes.isEmpty else { return }
+        engine.state.add(pendingRecordZoneChanges:
+            diff.saves.map { .saveRecord(recordID($0, tripID: trip.id)) } +
+            diff.deletes.map { .deleteRecord(recordID($0, tripID: trip.id)) })
+        lastKnown[trip.id] = trip
+    }
+
+    /// Called when the user deletes a trip locally: drop the whole zone.
+    func noteLocalDelete(tripID: UUID) {
+        guard let engine = engine(for: tripID) else { return }
+        engine.state.add(pendingDatabaseChanges:
+            [.deleteZone(CloudKitMapping.zoneID(forTripID: tripID, owner: owner(for: tripID)))])
+        lastKnown[tripID] = nil
+    }
+
+    private func recordID(_ ref: TripRecordRef, tripID: UUID) -> CKRecord.ID {
+        let owner = owner(for: tripID)
+        switch ref {
+        case .tripMeta: return CloudKitMapping.tripMetaRecordID(tripID: tripID, owner: owner)
+        case .day(let id): return CloudKitMapping.dayRecordID(id, tripID: tripID, owner: owner)
+        case .item(let id): return CloudKitMapping.itemRecordID(id, tripID: tripID, owner: owner)
+        }
+    }
+
+    /// Build the CKRecord to send for a record ID, or nil if the entity no
+    /// longer exists locally (the engine then drops the pending save).
+    /// After a conflict, a server-tagged base record is cached; current local
+    /// field values are re-applied onto it so the retry carries BOTH the
+    /// server change tag and the latest local state.
+    private func record(for recordID: CKRecord.ID) -> CKRecord? {
+        guard let fresh = freshRecord(for: recordID) else {
+            conflictBaseRecords[recordID] = nil
+            return nil
+        }
+        if let base = conflictBaseRecords[recordID] {
+            for key in fresh.allKeys() { base[key] = fresh[key] }
+            return base
+        }
+        return fresh
+    }
+
+    private func freshRecord(for recordID: CKRecord.ID) -> CKRecord? {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: recordID.zoneID.zoneName),
+              let trip = store.trip(id: tripID) else { return nil }
+        let owner = recordID.zoneID.ownerName
+        if recordID.recordName == CloudKitMapping.tripMetaRecordName {
+            return CloudKitMapping.tripMetaRecord(for: trip, owner: owner)
+        }
+        guard let entityID = UUID(uuidString: recordID.recordName) else { return nil }
+        if let item = trip.items.first(where: { $0.id == entityID }) {
+            return CloudKitMapping.itemRecord(for: item, tripID: tripID, owner: owner)
+        }
+        if let day = trip.days.first(where: { $0.id == entityID }) {
+            return CloudKitMapping.dayRecord(for: day, tripID: tripID, owner: owner)
+        }
+        return nil
+    }
+
+    // MARK: - Conflict resolution
+
+    /// Spec conflict policy: per-record last-writer-wins. The server copy is
+    /// the baseline; if our local entity was modified more recently than the
+    /// server's, requeue our save (now carrying the server change tag).
+    private func handleFailedSave(_ record: CKRecord, error: CKError, engine: CKSyncEngine) {
+        switch error.code {
+        case .serverRecordChanged:
+            guard let serverRecord = error.serverRecord else { return }
+            let serverModified = serverRecord["modifiedAt"] as? Date ?? .distantPast
+            let localModified = record["modifiedAt"] as? Date ?? .distantPast
+            if localModified > serverModified {
+                // Local wins: retry on top of the server's record so the save
+                // carries its change tag — a from-scratch record would fail
+                // with serverRecordChanged forever. record(for:) re-applies
+                // current local field values onto this base at send time.
+                conflictBaseRecords[record.recordID] = serverRecord
+                engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
+            } else {
+                conflictBaseRecords[record.recordID] = nil
+                applyFetchedRecord(serverRecord)   // accept server copy locally
+            }
+        case .zoneNotFound:
+            // Zone was deleted remotely or never created: recreate and resend everything.
+            if let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName),
+               let trip = store.trip(id: tripID) {
+                queueFullTrip(trip)
+            }
+        case .unknownItem, .invalidArguments:
+            break   // dropped: entity no longer exists or schema mismatch
+        default:
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Sharing (Task 8)
+
+    /// Fetch the zone-wide share for a trip, creating it if needed.
+    /// Zone-wide shares have the fixed record name CKRecordNameZoneWideShare.
+    func share(for trip: Trip) async throws -> CKShare {
+        let zoneID = CloudKitMapping.zoneID(forTripID: trip.id, owner: owner(for: trip.id))
+        let database = sharedTripIDs.contains(trip.id)
+            ? container.sharedCloudDatabase : container.privateCloudDatabase
+        let shareID = CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)
+        // Adaptation: bind the result first, then conditionally cast to avoid
+        // a "conditional downcast from 'CKRecord' to 'CKShare' always succeeds"
+        // compiler warning on some SDK versions.
+        if let fetched = try? await database.record(for: shareID) {
+            if let existing = fetched as? CKShare { return existing }
+        }
+        let share = CKShare(recordZoneID: zoneID)
+        share[CKShare.SystemFieldKey.title] = trip.name
+        share.publicPermission = .none
+        do {
+            let (saved, _) = try await database.modifyRecords(saving: [share], deleting: [])
+            for result in saved.values {
+                if case .success(let record) = result, let savedShare = record as? CKShare {
+                    return savedShare
+                }
+            }
+            return share
+        } catch let error as CKError where error.code == .zoneNotFound {
+            // The trip's zone hasn't reached the server yet (created offline
+            // or zone save still pending) — tell the user to retry rather
+            // than surfacing a cryptic CloudKit error.
+            throw NSError(domain: SyncCoordinator.containerID, code: Int(CKError.zoneNotFound.rawValue), userInfo: [
+                NSLocalizedDescriptionKey: String(localized: "This trip hasn't finished syncing yet — try again in a moment.")
+            ])
+        }
+    }
+
+    var cloudKitContainer: CKContainer { container }
+
+    /// Accept an incoming share invitation, then fetch the new shared zone.
+    func acceptShare(metadata: CKShare.Metadata) async {
+        do {
+            try await container.accept(metadata)
+            await fetchNow()
+        } catch {
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    var isAvailable: Bool {
+        if case .unavailable = status { return false }
+        return true
+    }
+
+    // MARK: - Fetch path (Task 7)
+
+    private func applyFetchedRecord(_ record: CKRecord) {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName) else { return }
+        store.upsertRemote(tripID: tripID) { trip in
+            switch record.recordType {
+            case "TripMeta":
+                CloudKitMapping.applyTripMeta(record, to: &trip)
+            case "TripDay":
+                guard let day = CloudKitMapping.day(from: record) else { return }
+                if let i = trip.days.firstIndex(where: { $0.id == day.id }) {
+                    trip.days[i] = day
+                } else {
+                    trip.days.append(day)
+                }
+                // Sort on update too: a remote edit can change a day's date.
+                trip.days.sort { $0.date < $1.date }
+            case "ChecklistItem":
+                guard let item = CloudKitMapping.item(from: record) else { return }
+                if let i = trip.items.firstIndex(where: { $0.id == item.id }) {
+                    trip.items[i] = item
+                } else {
+                    trip.items.append(item)
+                }
+            default:
+                break
+            }
+        }
+        // Keep the diff baseline in sync so remote applies don't echo back up.
+        if let updated = store.trip(id: tripID) { lastKnown[tripID] = updated }
+    }
+
+    private func applyFetchedDeletion(_ recordID: CKRecord.ID) {
+        guard let tripID = CloudKitMapping.tripID(fromZoneName: recordID.zoneID.zoneName),
+              let entityID = UUID(uuidString: recordID.recordName) else { return }
+        store.upsertRemote(tripID: tripID) { trip in
+            trip.items.removeAll { $0.id == entityID }
+            trip.days.removeAll { $0.id == entityID }
+        }
+        if let updated = store.trip(id: tripID) { lastKnown[tripID] = updated }
+    }
+}
+
+// MARK: - CKSyncEngineDelegate
+
+extension SyncCoordinator: CKSyncEngineDelegate {
+
+    // SDK note: CKSyncEngineDelegate inherits Sendable and the coordinator is
+    // @MainActor, so these nonisolated implementations await onto the main actor
+    // before touching any mutable state.
+
+    nonisolated func handleEvent(_ event: CKSyncEngine.Event, syncEngine: CKSyncEngine) async {
+        await MainActor.run { handle(event, engine: syncEngine) }
+    }
+
+    // The pendingChanges-based initializer is required (not just preferred):
+    // it tells the engine which pending changes the batch covers, so the
+    // engine dequeues them on success and retries them on transient failures.
+    // A manually-built batch leaves the queue untouched (infinite resend) and
+    // bypasses retry bookkeeping.
+    nonisolated func nextRecordZoneChangeBatch(
+        _ context: CKSyncEngine.SendChangesContext,
+        syncEngine: CKSyncEngine
+    ) async -> CKSyncEngine.RecordZoneChangeBatch? {
+        let scope = context.options.scope
+        let pending = syncEngine.state.pendingRecordZoneChanges.filter { scope.contains($0) }
+        guard !pending.isEmpty else { return nil }
+        return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending) { recordID in
+            await self.record(for: recordID)
+        }
+    }
+
+    // MARK: Private helpers (all @MainActor via class isolation)
+
+    private func handle(_ event: CKSyncEngine.Event, engine: CKSyncEngine) {
+        switch event {
+        case .stateUpdate(let update):
+            saveState(update.stateSerialization, name: stateFileName(for: engine))
+
+        case .sentRecordZoneChanges(let sent):
+            for saved in sent.savedRecords {
+                conflictBaseRecords[saved.recordID] = nil
+            }
+            for failed in sent.failedRecordSaves {
+                handleFailedSave(failed.record, error: failed.error, engine: engine)
+            }
+
+        case .fetchedDatabaseChanges(let changes):
+            for deletion in changes.deletions {
+                if let tripID = CloudKitMapping.tripID(fromZoneName: deletion.zoneID.zoneName) {
+                    store.removeRemote(tripID: tripID)
+                    lastKnown[tripID] = nil
+                    noteUnshared(tripID: tripID)
+                }
+            }
+            for modification in changes.modifications where engine === sharedEngine {
+                // A zone appearing in the shared DB = a trip shared with us.
+                if let tripID = CloudKitMapping.tripID(fromZoneName: modification.zoneID.zoneName) {
+                    noteShared(tripID: tripID, ownerName: modification.zoneID.ownerName)
+                }
+            }
+
+        case .fetchedRecordZoneChanges(let changes):
+            for modification in changes.modifications {
+                if engine === sharedEngine,
+                   let tripID = CloudKitMapping.tripID(fromZoneName: modification.record.recordID.zoneID.zoneName) {
+                    noteShared(tripID: tripID, ownerName: modification.record.recordID.zoneID.ownerName)
+                }
+                applyFetchedRecord(modification.record)
+            }
+            for deletion in changes.deletions {
+                applyFetchedDeletion(deletion.recordID)
+            }
+
+        default:
+            // Known v1 limitation: .accountChange (sign-out/sign-in mid-
+            // session) is not handled; engines rebuild on next app launch.
+            break
+        }
+    }
+
+}

@@ -1,4 +1,4 @@
-// Renders the Planova app icon: teal gradient, white location pin,
+// Renders the WanderIQ app icon: teal gradient, white location pin,
 // teal checkmark. Run from repo root:
 //   swift scripts/make-icon.swift
 //
@@ -48,6 +48,6 @@ ctx.strokePath()
 let cgImage = ctx.makeImage()!
 let rep = NSBitmapImageRep(cgImage: cgImage)
 let png = rep.representation(using: .png, properties: [:])!
-let out = "Planova/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
+let out = "WanderIQ/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
 try! png.write(to: URL(fileURLWithPath: out))
 print("wrote \(out)")
