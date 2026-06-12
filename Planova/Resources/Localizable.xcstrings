@@ -48,6 +48,8 @@
     "Day Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当日地图" } } } },
     "Done" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } } } },
     "No places on this day" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日暂无地点" } } } },
-    "Attach places to items to see them here." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为行程项目添加地点后会显示在这里。" } } } }
+    "Attach places to items to see them here." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为行程项目添加地点后会显示在这里。" } } } },
+    "No results" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到结果" } } } },
+    "Check the name or try a different spelling." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请检查名称或尝试其他写法。" } } } }
   }
 }

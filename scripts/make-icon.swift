@@ -1,12 +1,17 @@
 // Renders the Planova app icon: teal gradient, white location pin,
 // teal checkmark. Run from repo root:
 //   swift scripts/make-icon.swift
+//
+// Renders into an alpha-free bitmap: App Store validation rejects app
+// icons that contain an alpha channel (ITMS-90717).
 import AppKit
 
-let s: CGFloat = 1024
-let image = NSImage(size: NSSize(width: s, height: s))
-image.lockFocus()
-let ctx = NSGraphicsContext.current!.cgContext
+let s = 1024
+let ctx = CGContext(data: nil, width: s, height: s,
+                    bitsPerComponent: 8, bytesPerRow: 0,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
+let sf = CGFloat(s)
 
 let colors = [
     CGColor(red: 0.10, green: 0.52, blue: 0.65, alpha: 1),
@@ -14,8 +19,8 @@ let colors = [
 ] as CFArray
 let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                           colors: colors, locations: [0, 1])!
-ctx.drawLinearGradient(gradient, start: CGPoint(x: 0, y: s),
-                       end: CGPoint(x: s, y: 0), options: [])
+ctx.drawLinearGradient(gradient, start: CGPoint(x: 0, y: sf),
+                       end: CGPoint(x: sf, y: 0), options: [])
 
 // White location pin: circle head + tapering point.
 ctx.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
@@ -38,8 +43,8 @@ ctx.addLine(to: CGPoint(x: cx - 25, y: cy - 75))
 ctx.addLine(to: CGPoint(x: cx + 120, y: cy + 95))
 ctx.strokePath()
 
-image.unlockFocus()
-let rep = NSBitmapImageRep(data: image.tiffRepresentation!)!
+let cgImage = ctx.makeImage()!
+let rep = NSBitmapImageRep(cgImage: cgImage)
 let png = rep.representation(using: .png, properties: [:])!
 let out = "Planova/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
 try! png.write(to: URL(fileURLWithPath: out))

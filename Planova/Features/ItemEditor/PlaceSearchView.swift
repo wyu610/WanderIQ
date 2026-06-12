@@ -9,13 +9,20 @@ struct PlaceSearchView: View {
 
     @State private var query = ""
     @State private var results: [MKMapItem] = []
+    @State private var hasSearched = false
+    @State private var searchTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
             Group {
                 if results.isEmpty {
-                    ContentUnavailableView("Search for a place", systemImage: "magnifyingglass",
-                                           description: Text("Type a name and press Search."))
+                    if hasSearched {
+                        ContentUnavailableView("No results", systemImage: "mappin.slash",
+                                               description: Text("Check the name or try a different spelling."))
+                    } else {
+                        ContentUnavailableView("Search for a place", systemImage: "magnifyingglass",
+                                               description: Text("Type a name and press Search."))
+                    }
                 } else {
                     List(results, id: \.self) { item in
                         Button {
@@ -33,7 +40,11 @@ struct PlaceSearchView: View {
             }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always),
                         prompt: Text("Place name"))
-            .onSubmit(of: .search) { Task { await search() } }
+            .onSubmit(of: .search) {
+                searchTask?.cancel()
+                searchTask = Task { await search() }
+            }
+            .onDisappear { searchTask?.cancel() }
             .navigationTitle("Attach Place")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -47,8 +58,11 @@ struct PlaceSearchView: View {
     private func search() async {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = query
+        request.resultTypes = .pointOfInterest
         let response = try? await MKLocalSearch(request: request).start()
+        guard !Task.isCancelled else { return }
         results = response?.mapItems ?? []
+        hasSearched = true
     }
 
     private func select(_ item: MKMapItem) {
