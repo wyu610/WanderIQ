@@ -8,6 +8,7 @@ final class AppModel {
     let store: TripStore
     private let repository: TripRepository
     @ObservationIgnored private var saveTasks: [UUID: Task<Void, Never>] = [:]
+    let sync: SyncCoordinator
 
     init() {
         let dir = URL.applicationSupportDirectory.appendingPathComponent("trips")
@@ -16,8 +17,19 @@ final class AppModel {
         // trips (files stay on disk either way; spec: surface a banner).
         let trips = (try? repository.loadAll()) ?? []
         self.store = TripStore(trips: trips)
+        self.sync = SyncCoordinator(store: store,
+                                    stateDirectory: URL.applicationSupportDirectory.appendingPathComponent("sync"))
         seedIfNeeded()
         store.onChange = { [weak self] trip in self?.scheduleSave(trip) }
+        store.onRemoteChange = { [weak self] trip in
+            self?.scheduleSave(trip)
+            self?.refreshReminders()
+        }
+        store.onRemoteRemove = { [weak self] id in
+            try? self?.repository.delete(id: id)
+            self?.refreshReminders()
+        }
+        Task { await sync.start() }
     }
 
     // MARK: - Intents (views call these, not the store directly)
