@@ -5,20 +5,39 @@ struct TripListView: View {
     @Environment(AppModel.self) private var model
     @State private var showingNewTrip = false
 
+    @ViewBuilder
+    private var syncStatusFooter: some View {
+        switch model.sync.status {
+        case .unavailable(let reason):
+            Label(reason, systemImage: "icloud.slash")
+        case .idle:
+            Label("Synced with iCloud", systemImage: "icloud")
+        case .syncing:
+            Label("Syncing…", systemImage: "arrow.triangle.2.circlepath.icloud")
+        case .error(let message):
+            Label(message, systemImage: "exclamationmark.icloud")
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(model.store.trips) { trip in
-                    NavigationLink(value: trip.id) {
-                        TripRowView(trip: trip)
+                Section {
+                    ForEach(model.store.trips) { trip in
+                        NavigationLink(value: trip.id) {
+                            TripRowView(trip: trip)
+                        }
                     }
-                }
-                .onDelete { offsets in
-                    for index in offsets {
-                        model.deleteTrip(id: model.store.trips[index].id)
+                    .onDelete { offsets in
+                        for index in offsets {
+                            model.deleteTrip(id: model.store.trips[index].id)
+                        }
                     }
+                } footer: {
+                    syncStatusFooter
                 }
             }
+            .refreshable { await model.sync.fetchNow() }
             .navigationTitle("Trips")
             .navigationDestination(for: UUID.self) { id in
                 TripDetailView(tripID: id)
