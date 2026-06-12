@@ -9,6 +9,14 @@ public final class TripStore {
     /// hooks persistence (and later, sync) here.
     @ObservationIgnored public var onChange: ((Trip) -> Void)?
 
+    /// Fired after a remote (cloud-originated) mutation; the app layer hooks
+    /// disk persistence here. Deliberately separate from onChange so remote
+    /// applies never re-enter the sync send queue.
+    @ObservationIgnored public var onRemoteChange: ((Trip) -> Void)?
+
+    /// Fired after a remote deletion (zone deleted / share revoked).
+    @ObservationIgnored public var onRemoteRemove: ((UUID) -> Void)?
+
     public init(trips: [Trip] = []) {
         self.trips = trips.sorted { $0.startDate < $1.startDate }
     }
@@ -71,5 +79,29 @@ public final class TripStore {
                 trip.items[j].modifiedAt = now
             }
         }
+    }
+
+    /// Apply a cloud-originated mutation, creating an empty shell trip if
+    /// this is the first record fetched for an unknown trip (its real name
+    /// and dates arrive with the TripMeta record).
+    public func upsertRemote(tripID: UUID, _ mutate: (inout Trip) -> Void) {
+        if let i = trips.firstIndex(where: { $0.id == tripID }) {
+            mutate(&trips[i])
+            onRemoteChange?(trips[i])
+        } else {
+            var shell = Trip(id: tripID, name: "",
+                             startDate: Date(timeIntervalSince1970: 0),
+                             endDate: Date(timeIntervalSince1970: 0))
+            mutate(&shell)
+            trips.append(shell)
+            trips.sort { $0.startDate < $1.startDate }
+            onRemoteChange?(shell)
+        }
+    }
+
+    public func removeRemote(tripID: UUID) {
+        guard trips.contains(where: { $0.id == tripID }) else { return }
+        trips.removeAll { $0.id == tripID }
+        onRemoteRemove?(tripID)
     }
 }
