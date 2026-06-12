@@ -67,4 +67,40 @@ import CloudKit
         record["kind"] = "future-kind"
         #expect(CloudKitMapping.item(from: record) == nil)
     }
+
+    /// Server-decoded records bridge integers as Int64-backed NSNumber, not
+    /// Int — the decoders must read through NSNumber.
+    @Test func itemParsesServerShapedInt64Numbers() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.itemRecord(for: trip.items[0], tripID: trip.id)
+        record["isDone"] = NSNumber(value: Int64(1))
+        record["sortOrder"] = NSNumber(value: Int64(7))
+        record["placeLat"] = NSNumber(value: 31.2)
+        let parsed = CloudKitMapping.item(from: record)
+        #expect(parsed?.isDone == true)
+        #expect(parsed?.sortOrder == 7)
+        #expect(parsed?.place?.latitude == 31.2)
+    }
+
+    /// CloudKit drops empty arrays server-side: a TripMeta record with no
+    /// destinations key means the field was CLEARED, not absent.
+    @Test func missingDestinationsKeyMeansCleared() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.tripMetaRecord(for: trip)
+        record["destinations"] = nil
+        var target = trip
+        CloudKitMapping.applyTripMeta(record, to: &target)
+        #expect(target.destinations.isEmpty)
+        #expect(target.name == trip.name)
+    }
+
+    /// A place with a name but a dropped/empty query must still decode.
+    @Test func placeSurvivesMissingQuery() {
+        let trip = sampleTrip()
+        let record = CloudKitMapping.itemRecord(for: trip.items[0], tripID: trip.id)
+        record["placeQuery"] = nil
+        let parsed = CloudKitMapping.item(from: record)
+        #expect(parsed?.place?.name == "P")
+        #expect(parsed?.place?.query == "")
+    }
 }

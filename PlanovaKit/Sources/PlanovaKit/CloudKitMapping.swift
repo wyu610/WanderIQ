@@ -11,6 +11,9 @@ public enum CloudKitMapping {
 
     // MARK: Zone / record IDs
 
+    /// `owner` defaults to the current user (private database). Callers
+    /// working with a SHARED zone must pass the zone's ownerName — the
+    /// default silently targets the wrong zone for shared trips.
     public static func zoneID(forTripID id: UUID, owner: String = CKCurrentUserDefaultName) -> CKRecordZone.ID {
         CKRecordZone.ID(zoneName: zonePrefix + id.uuidString, ownerName: owner)
     }
@@ -48,8 +51,10 @@ public enum CloudKitMapping {
         if let v = record["name"] as? String { trip.name = v }
         if let v = record["startDate"] as? Date { trip.startDate = v }
         if let v = record["endDate"] as? Date { trip.endDate = v }
-        if let v = record["destinations"] as? [String] { trip.destinations = v }
-        if let v = record["schemaVersion"] as? Int { trip.schemaVersion = v }
+        // TripMeta always writes destinations; CloudKit drops empty arrays on
+        // the server, so a missing key means "cleared", not "absent".
+        trip.destinations = record["destinations"] as? [String] ?? []
+        if let v = (record["schemaVersion"] as? NSNumber)?.intValue { trip.schemaVersion = v }
     }
 
     // MARK: TripDay
@@ -99,10 +104,11 @@ public enum CloudKitMapping {
               let kind = ItemKind(rawValue: kindRaw),
               let label = record["label"] as? String else { return nil }
         var place: Place?
-        if let name = record["placeName"] as? String, let query = record["placeQuery"] as? String {
-            place = Place(name: name, query: query,
-                          latitude: record["placeLat"] as? Double,
-                          longitude: record["placeLon"] as? Double)
+        // placeName alone identifies a place; query may be empty/dropped.
+        if let name = record["placeName"] as? String {
+            place = Place(name: name, query: record["placeQuery"] as? String ?? "",
+                          latitude: (record["placeLat"] as? NSNumber)?.doubleValue,
+                          longitude: (record["placeLon"] as? NSNumber)?.doubleValue)
         }
         return ChecklistItem(
             id: id, kind: kind, label: label,
@@ -110,8 +116,9 @@ public enum CloudKitMapping {
             dayID: (record["dayID"] as? String).flatMap(UUID.init(uuidString:)),
             time: record["time"] as? String,
             owner: record["owner"] as? String,
-            isDone: (record["isDone"] as? Int ?? 0) != 0,
-            sortOrder: record["sortOrder"] as? Int ?? 0,
+            // NSNumber path: server-decoded records bridge integers as Int64.
+            isDone: ((record["isDone"] as? NSNumber)?.intValue ?? 0) != 0,
+            sortOrder: (record["sortOrder"] as? NSNumber)?.intValue ?? 0,
             reminderDate: record["reminderDate"] as? Date,
             place: place,
             modifiedAt: record["modifiedAt"] as? Date ?? Date(timeIntervalSince1970: 0))
