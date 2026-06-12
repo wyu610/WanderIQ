@@ -37,6 +37,12 @@
     "iCloud is restricted" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 受限" } } } },
     "iCloud temporarily unavailable" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 暂时不可用" } } } },
     "iCloud unavailable" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iCloud 不可用" } } } },
-    "This trip hasn't finished syncing yet — try again in a moment." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此行程尚未完成同步，请稍后再试。" } } } }
+    "This trip hasn't finished syncing yet — try again in a moment." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此行程尚未完成同步，请稍后再试。" } } } },
+    "Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点" } } } },
+    "Attach Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加地点" } } } },
+    "Remove Place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "移除地点" } } } },
+    "Place name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点名称" } } } },
+    "Search for a place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索地点" } } } },
+    "Type a name and press Search." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入名称后按搜索。" } } } }
   }
 }

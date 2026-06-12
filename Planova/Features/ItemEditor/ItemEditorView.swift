@@ -16,6 +16,8 @@ struct ItemEditorView: View {
     @State private var timeValue = Date()
     @State private var hasReminder = false
     @State private var reminderDate = Date()
+    @State private var place: Place?
+    @State private var showingPlaceSearch = false
     @State private var loaded = false
 
     private var kind: ItemKind {
@@ -71,6 +73,20 @@ struct ItemEditorView: View {
                             .labelsHidden()
                     }
                 }
+                if kind == .itinerary || kind == .prep || kind == .hotel {
+                    Section("Place") {
+                        if let place {
+                            Label(place.name, systemImage: "mappin.and.ellipse")
+                            Button("Remove Place", role: .destructive) { self.place = nil }
+                        } else {
+                            Button {
+                                showingPlaceSearch = true
+                            } label: {
+                                Label("Attach Place", systemImage: "mappin.and.ellipse")
+                            }
+                        }
+                    }
+                }
                 if editedItem != nil {
                     Section {
                         Button("Delete", role: .destructive) {
@@ -94,6 +110,9 @@ struct ItemEditorView: View {
                 }
             }
             .onAppear(perform: populate)
+            .sheet(isPresented: $showingPlaceSearch) {
+                PlaceSearchView { place = $0 }
+            }
         }
     }
 
@@ -116,6 +135,7 @@ struct ItemEditorView: View {
                 hasReminder = true
                 reminderDate = r
             }
+            place = item.place
         }
     }
 
@@ -131,13 +151,15 @@ struct ItemEditorView: View {
             item.dayID = (kind == .itinerary) ? dayID : nil
             item.time = time
             item.reminderDate = reminder
+            item.place = place
             model.updateItem(item, in: trip.id)
         } else {
             let item = ChecklistItem(kind: kind, label: label, notes: notes,
                                      dayID: (kind == .itinerary) ? dayID : nil,
                                      time: time,
                                      owner: trimmedOwner.isEmpty ? nil : trimmedOwner,
-                                     reminderDate: reminder)
+                                     reminderDate: reminder,
+                                     place: place)
             model.addItem(item, to: trip.id)
         }
         dismiss()
