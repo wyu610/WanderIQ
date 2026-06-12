@@ -7,6 +7,7 @@ struct ItineraryView: View {
     @State private var expanded: Set<UUID> = []
     @State private var didSetInitialExpansion = false
     @State private var editing: EditorContext?
+    @State private var mapDay: TripDay?
 
     var body: some View {
         List {
@@ -17,6 +18,10 @@ struct ItineraryView: View {
         .listStyle(.sidebar)
         .sheet(item: $editing) { context in
             ItemEditorView(context: context, trip: trip)
+        }
+        .sheet(item: $mapDay) { day in
+            DayMapView(day: day,
+                       items: trip.items.filter { $0.dayID == day.id })
         }
         .onAppear(perform: setInitialExpansion)
     }
@@ -38,6 +43,13 @@ struct ItineraryView: View {
                 editing = EditorContext(mode: .add(.itinerary, dayID: day.id))
             } label: {
                 Label("Add Item", systemImage: "plus")
+            }
+            if items.contains(where: { $0.place?.latitude != nil }) {
+                Button {
+                    mapDay = day
+                } label: {
+                    Label("Day Map", systemImage: "map")
+                }
             }
         } header: {
             DayHeader(day: day,

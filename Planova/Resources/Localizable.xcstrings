@@ -44,6 +44,10 @@
     "Place name" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地点名称" } } } },
     "Search for a place" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "搜索地点" } } } },
     "Type a name and press Search." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "输入名称后按搜索。" } } } },
-    "Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地图" } } } }
+    "Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "地图" } } } },
+    "Day Map" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当日地图" } } } },
+    "Done" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } } } },
+    "No places on this day" : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日暂无地点" } } } },
+    "Attach places to items to see them here." : { "localizations" : { "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "为行程项目添加地点后会显示在这里。" } } } }
   }
 }
