@@ -20,6 +20,10 @@ targets:
       testTargets: [PlanovaUITests]
     entitlements:
       path: Planova.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.planova.Planova]
+        com.apple.developer.icloud-services: [CloudKit]
+        aps-environment: development
     info:
       path: Planova/Info.plist
       properties:
