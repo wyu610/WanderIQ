@@ -44,6 +44,7 @@ public enum CloudKitMapping {
         record["endDate"] = trip.endDate
         record["destinations"] = trip.destinations
         record["schemaVersion"] = trip.schemaVersion
+        record["modifiedAt"] = trip.modifiedAt
         return record
     }
 
@@ -55,6 +56,7 @@ public enum CloudKitMapping {
         // the server, so a missing key means "cleared", not "absent".
         trip.destinations = record["destinations"] as? [String] ?? []
         if let v = (record["schemaVersion"] as? NSNumber)?.intValue { trip.schemaVersion = v }
+        if let v = record["modifiedAt"] as? Date { trip.modifiedAt = v }
     }
 
     // MARK: TripDay
@@ -64,6 +66,7 @@ public enum CloudKitMapping {
         record["date"] = day.date
         record["city"] = day.city
         record["title"] = day.title
+        record["modifiedAt"] = day.modifiedAt
         return record
     }
 
@@ -73,7 +76,8 @@ public enum CloudKitMapping {
               let date = record["date"] as? Date else { return nil }
         return TripDay(id: id, date: date,
                        city: record["city"] as? String ?? "",
-                       title: record["title"] as? String ?? "")
+                       title: record["title"] as? String ?? "",
+                       modifiedAt: record["modifiedAt"] as? Date)
     }
 
     // MARK: ChecklistItem

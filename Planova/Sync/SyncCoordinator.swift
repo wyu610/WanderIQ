@@ -32,6 +32,10 @@ final class SyncCoordinator {
     @ObservationIgnored private(set) var sharedTripIDs: Set<UUID> = []
     /// Zone owner names for shared trips (needed to build record IDs).
     @ObservationIgnored private var zoneOwners: [UUID: String] = [:]
+    /// Server-tagged base records from serverRecordChanged conflicts where
+    /// local wins; the retried save is built on top of these so it carries a
+    /// valid change tag. Evicted on successful send or entity deletion.
+    @ObservationIgnored private var conflictBaseRecords: [CKRecord.ID: CKRecord] = [:]
 
     init(store: TripStore, stateDirectory: URL) {
         self.container = CKContainer(identifier: Self.containerID)
@@ -75,9 +79,13 @@ final class SyncCoordinator {
     func fetchNow() async {
         guard let privateEngine, let sharedEngine else { return }
         status = .syncing
-        try? await privateEngine.fetchChanges()
-        try? await sharedEngine.fetchChanges()
-        status = .idle
+        do {
+            try await privateEngine.fetchChanges()
+            try await sharedEngine.fetchChanges()
+            status = .idle
+        } catch {
+            status = .error(error.localizedDescription)
+        }
     }
 
     private static func describe(_ s: CKAccountStatus) -> String {
@@ -173,9 +181,24 @@ final class SyncCoordinator {
         }
     }
 
-    /// Build the current CKRecord for a record ID, or nil if the entity no
+    /// Build the CKRecord to send for a record ID, or nil if the entity no
     /// longer exists locally (the engine then drops the pending save).
+    /// After a conflict, a server-tagged base record is cached; current local
+    /// field values are re-applied onto it so the retry carries BOTH the
+    /// server change tag and the latest local state.
     private func record(for recordID: CKRecord.ID) -> CKRecord? {
+        guard let fresh = freshRecord(for: recordID) else {
+            conflictBaseRecords[recordID] = nil
+            return nil
+        }
+        if let base = conflictBaseRecords[recordID] {
+            for key in fresh.allKeys() { base[key] = fresh[key] }
+            return base
+        }
+        return fresh
+    }
+
+    private func freshRecord(for recordID: CKRecord.ID) -> CKRecord? {
         guard let tripID = CloudKitMapping.tripID(fromZoneName: recordID.zoneID.zoneName),
               let trip = store.trip(id: tripID) else { return nil }
         let owner = recordID.zoneID.ownerName
@@ -200,16 +223,20 @@ final class SyncCoordinator {
     private func handleFailedSave(_ record: CKRecord, error: CKError, engine: CKSyncEngine) {
         switch error.code {
         case .serverRecordChanged:
-            guard let serverRecord = error.serverRecord,
-                  let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName) else { return }
+            guard let serverRecord = error.serverRecord else { return }
             let serverModified = serverRecord["modifiedAt"] as? Date ?? .distantPast
             let localModified = record["modifiedAt"] as? Date ?? .distantPast
             if localModified > serverModified {
+                // Local wins: retry on top of the server's record so the save
+                // carries its change tag — a from-scratch record would fail
+                // with serverRecordChanged forever. record(for:) re-applies
+                // current local field values onto this base at send time.
+                conflictBaseRecords[record.recordID] = serverRecord
                 engine.state.add(pendingRecordZoneChanges: [.saveRecord(record.recordID)])
             } else {
+                conflictBaseRecords[record.recordID] = nil
                 applyFetchedRecord(serverRecord)   // accept server copy locally
             }
-            _ = tripID
         case .zoneNotFound:
             // Zone was deleted remotely or never created: recreate and resend everything.
             if let tripID = CloudKitMapping.tripID(fromZoneName: record.recordID.zoneID.zoneName),
@@ -237,8 +264,9 @@ final class SyncCoordinator {
                     trip.days[i] = day
                 } else {
                     trip.days.append(day)
-                    trip.days.sort { $0.date < $1.date }
                 }
+                // Sort on update too: a remote edit can change a day's date.
+                trip.days.sort { $0.date < $1.date }
             case "ChecklistItem":
                 guard let item = CloudKitMapping.item(from: record) else { return }
                 if let i = trip.items.firstIndex(where: { $0.id == item.id }) {
@@ -302,6 +330,9 @@ extension SyncCoordinator: CKSyncEngineDelegate {
             saveState(update.stateSerialization, name: stateFileName(for: engine))
 
         case .sentRecordZoneChanges(let sent):
+            for saved in sent.savedRecords {
+                conflictBaseRecords[saved.recordID] = nil
+            }
             for failed in sent.failedRecordSaves {
                 handleFailedSave(failed.record, error: failed.error, engine: engine)
             }

@@ -94,6 +94,29 @@ import CloudKit
         #expect(target.name == trip.name)
     }
 
+    /// TripMeta and TripDay carry modifiedAt so last-writer-wins conflict
+    /// resolution works for every record type, not just items.
+    @Test func metaAndDayModifiedAtRoundTrip() {
+        let stamp = Date(timeIntervalSince1970: 1_700_000_777)
+        var trip = sampleTrip()
+        trip.modifiedAt = stamp
+        trip.days[0].modifiedAt = stamp
+
+        let meta = CloudKitMapping.tripMetaRecord(for: trip)
+        #expect(meta["modifiedAt"] as? Date == stamp)
+        var shell = Trip(name: "", startDate: Date(), endDate: Date())
+        CloudKitMapping.applyTripMeta(meta, to: &shell)
+        #expect(shell.modifiedAt == stamp)
+
+        let dayRecord = CloudKitMapping.dayRecord(for: trip.days[0], tripID: trip.id)
+        #expect(CloudKitMapping.day(from: dayRecord)?.modifiedAt == stamp)
+
+        // nil stamps stay nil through the round trip (legacy data).
+        let bareDay = TripDay(date: stamp, city: "c", title: "t")
+        let bareRecord = CloudKitMapping.dayRecord(for: bareDay, tripID: trip.id)
+        #expect(CloudKitMapping.day(from: bareRecord)?.modifiedAt == nil)
+    }
+
     /// A place with a name but a dropped/empty query must still decode.
     @Test func placeSurvivesMissingQuery() {
         let trip = sampleTrip()

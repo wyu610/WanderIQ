@@ -56,12 +56,17 @@ public struct TripDay: Codable, Equatable, Identifiable, Sendable {
     public var date: Date
     public var city: String
     public var title: String
+    /// Last local edit; optional for migration-free decoding of old data.
+    /// nil means "never locally modified" and loses sync conflicts.
+    public var modifiedAt: Date?
 
-    public init(id: UUID = UUID(), date: Date, city: String, title: String) {
+    public init(id: UUID = UUID(), date: Date, city: String, title: String,
+                modifiedAt: Date? = nil) {
         self.id = id
         self.date = date
         self.city = city
         self.title = title
+        self.modifiedAt = modifiedAt
     }
 }
 
@@ -74,10 +79,15 @@ public struct Trip: Codable, Equatable, Identifiable, Sendable {
     public var days: [TripDay]
     public var items: [ChecklistItem]
     public var schemaVersion: Int
+    /// Last local edit to the trip's own fields (not its items/days).
+    /// Optional so pre-existing saved trips decode without migration;
+    /// nil means "never locally modified" and loses sync conflicts.
+    public var modifiedAt: Date?
 
     public init(id: UUID = UUID(), name: String, startDate: Date, endDate: Date,
                 destinations: [String] = [], days: [TripDay] = [],
-                items: [ChecklistItem] = [], schemaVersion: Int = 1) {
+                items: [ChecklistItem] = [], schemaVersion: Int = 1,
+                modifiedAt: Date? = nil) {
         self.id = id
         self.name = name
         self.startDate = startDate
@@ -86,6 +96,7 @@ public struct Trip: Codable, Equatable, Identifiable, Sendable {
         self.days = days
         self.items = items
         self.schemaVersion = schemaVersion
+        self.modifiedAt = modifiedAt
     }
 }
 
