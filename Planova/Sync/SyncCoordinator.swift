@@ -277,17 +277,21 @@ extension SyncCoordinator: CKSyncEngineDelegate {
         await MainActor.run { handle(event, engine: syncEngine) }
     }
 
-    // SDK adaptation: RecordZoneChangeBatch.init(pendingChanges:recordProvider:) is
-    // declared `async` in the Xcode 26.5 SDK (it was non-async in the WWDC23 sample).
-    // Therefore nextRecordZoneChangeBatch must be async (already is), and makeBatch
-    // must also be async. The recordProvider closure is @Sendable async, so we use
-    // MainActor.assumeIsolated inside it (we're guaranteed to be on main actor because
-    // makeBatch is called from nextRecordZoneChangeBatch which awaits onto MainActor).
+    // The pendingChanges-based initializer is required (not just preferred):
+    // it tells the engine which pending changes the batch covers, so the
+    // engine dequeues them on success and retries them on transient failures.
+    // A manually-built batch leaves the queue untouched (infinite resend) and
+    // bypasses retry bookkeeping.
     nonisolated func nextRecordZoneChangeBatch(
         _ context: CKSyncEngine.SendChangesContext,
         syncEngine: CKSyncEngine
     ) async -> CKSyncEngine.RecordZoneChangeBatch? {
-        await MainActor.run { makeBatch(context: context, engine: syncEngine) }
+        let scope = context.options.scope
+        let pending = syncEngine.state.pendingRecordZoneChanges.filter { scope.contains($0) }
+        guard !pending.isEmpty else { return nil }
+        return await CKSyncEngine.RecordZoneChangeBatch(pendingChanges: pending) { recordID in
+            await self.record(for: recordID)
+        }
     }
 
     // MARK: Private helpers (all @MainActor via class isolation)
@@ -334,36 +338,4 @@ extension SyncCoordinator: CKSyncEngineDelegate {
         }
     }
 
-    // SDK adaptation: RecordZoneChangeBatch(pendingChanges:recordProvider:) is async,
-    // so this method returns an async-initialised batch wrapped in Optional.
-    // We cannot call async from sync; instead we build the batch synchronously using
-    // the non-async init(recordsToSave:recordIDsToDelete:) by resolving records inline.
-    private func makeBatch(context: CKSyncEngine.SendChangesContext,
-                           engine: CKSyncEngine) -> CKSyncEngine.RecordZoneChangeBatch? {
-        let pending = engine.state.pendingRecordZoneChanges.filter { context.options.scope.contains($0) }
-        guard !pending.isEmpty else { return nil }
-
-        var recordsToSave: [CKRecord] = []
-        var recordIDsToDelete: [CKRecord.ID] = []
-
-        for change in pending {
-            switch change {
-            case .saveRecord(let recordID):
-                if let record = record(for: recordID) {
-                    recordsToSave.append(record)
-                }
-                // If record(for:) returns nil the entity was deleted locally;
-                // the engine drops the pending save when we don't include it.
-            case .deleteRecord(let recordID):
-                recordIDsToDelete.append(recordID)
-            @unknown default:
-                break
-            }
-        }
-
-        guard !recordsToSave.isEmpty || !recordIDsToDelete.isEmpty else { return nil }
-        return CKSyncEngine.RecordZoneChangeBatch(
-            recordsToSave: recordsToSave,
-            recordIDsToDelete: recordIDsToDelete)
-    }
 }
