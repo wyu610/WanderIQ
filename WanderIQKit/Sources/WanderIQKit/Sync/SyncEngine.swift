@@ -68,4 +68,28 @@ public enum SyncEngine {
                                      op: .delete, modifiedAt: deletedAt))
         state.tombstones[id] = deletedAt
     }
+
+    // MARK: - Push
+
+    /// Flush the outbox oldest-first. Upserts read the latest entity state from
+    /// the store; deletes send a tombstone. Each acknowledged entry is removed.
+    public static func push(outbox: inout Outbox, store: TripStore,
+                            backend: RemoteSyncBackend) async throws {
+        for change in outbox.pending {
+            let record = buildRecord(for: change, store: store)
+            try await backend.send([record])
+            outbox.acknowledge(change.key)
+        }
+    }
+
+    static func buildRecord(for change: PendingChange, store: TripStore) -> SyncRecord {
+        if change.op == .delete {
+            return SyncRecord(kind: change.kind, id: change.id, tripID: change.tripID,
+                              modifiedAt: change.modifiedAt, deleted: true)
+        }
+        let fields = SyncMapping.fields(kind: change.kind, id: change.id,
+                                        tripID: change.tripID, store: store)
+        return SyncRecord(kind: change.kind, id: change.id, tripID: change.tripID,
+                          modifiedAt: change.modifiedAt, deleted: false, fields: fields)
+    }
 }

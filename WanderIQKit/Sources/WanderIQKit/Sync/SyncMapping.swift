@@ -56,3 +56,38 @@ public enum SyncMapping {
         s.isEmpty ? [] : s.components(separatedBy: "\u{1f}")  // unit-separator delimited
     }
 }
+
+extension SyncMapping {
+    /// Build wire fields for an entity from the store (push side).
+    static func fields(kind: EntityKind, id: UUID, tripID: UUID, store: TripStore) -> [String: String] {
+        guard let trip = store.trip(id: tripID) else { return [:] }
+        switch kind {
+        case .trip:
+            return ["name": trip.name,
+                    "startDate": String(trip.startDate.timeIntervalSince1970),
+                    "endDate": String(trip.endDate.timeIntervalSince1970),
+                    "destinations": trip.destinations.joined(separator: "\u{1f}"),
+                    "schemaVersion": String(trip.schemaVersion)]
+        case .day:
+            guard let d = trip.days.first(where: { $0.id == id }) else { return [:] }
+            return ["date": String(d.date.timeIntervalSince1970),
+                    "city": d.city, "title": d.title]
+        case .item:
+            guard let it = trip.items.first(where: { $0.id == id }) else { return [:] }
+            var f: [String: String] = [
+                "kind": it.kind.rawValue, "label": it.label, "notes": it.notes,
+                "isDone": it.isDone ? "true" : "false",
+                "sortOrder": String(it.sortOrder)]
+            if let v = it.dayID { f["dayID"] = v.uuidString }
+            if let v = it.time { f["time"] = v }
+            if let v = it.owner { f["owner"] = v }
+            if let v = it.reminderDate { f["reminderDate"] = String(v.timeIntervalSince1970) }
+            if let p = it.place {
+                f["placeName"] = p.name; f["placeQuery"] = p.query
+                if let lat = p.latitude { f["placeLat"] = String(lat) }
+                if let lon = p.longitude { f["placeLon"] = String(lon) }
+            }
+            return f
+        }
+    }
+}
