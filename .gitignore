@@ -6,3 +6,10 @@ DerivedData/
 *.xcuserstate
 .swiftpm/
 Signing.xcconfig
+
+# Supabase local secrets
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/.branches/
