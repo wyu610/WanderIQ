@@ -37,6 +37,9 @@ targets:
         # and MARKETING_VERSION never reaches the binary.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Only HTTPS/iCloud (exempt) encryption; skips the ASC export-compliance
+        # prompt on every upload.
+        ITSAppUsesNonExemptEncryption: false
         # ASC upload validation (error 90474) requires these; iPad must list
         # all four orientations because the app doesn't require full screen.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
