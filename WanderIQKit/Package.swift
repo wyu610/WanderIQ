@@ -10,6 +10,10 @@ let package = Package(
     ],
     targets: [
         .target(name: "WanderIQKit", resources: [.process("Resources")]),
-        .testTarget(name: "WanderIQKitTests", dependencies: ["WanderIQKit"])
+        .testTarget(
+            name: "WanderIQKitTests",
+            dependencies: ["WanderIQKit"],
+            resources: [.copy("Fixtures")]
+        )
     ]
 )

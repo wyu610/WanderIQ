@@ -1,0 +1,28 @@
+{
+  "scenarios": [
+    {"name": "remote upsert newer applies",
+     "localModifiedAt": 1, "tombstone": null, "remoteModifiedAt": 2, "remoteDeleted": false,
+     "expect": "applyRemote"},
+    {"name": "remote upsert older kept",
+     "localModifiedAt": 2, "tombstone": null, "remoteModifiedAt": 1, "remoteDeleted": false,
+     "expect": "keepLocal"},
+    {"name": "tie keeps local",
+     "localModifiedAt": 2, "tombstone": null, "remoteModifiedAt": 2, "remoteDeleted": false,
+     "expect": "keepLocal"},
+    {"name": "remote delete newer than local edit applies",
+     "localModifiedAt": 1, "tombstone": null, "remoteModifiedAt": 2, "remoteDeleted": true,
+     "expect": "applyRemote"},
+    {"name": "local edit newer than remote delete kept",
+     "localModifiedAt": 3, "tombstone": null, "remoteModifiedAt": 2, "remoteDeleted": true,
+     "expect": "keepLocal"},
+    {"name": "local tombstone ties remote upsert stays deleted",
+     "localModifiedAt": null, "tombstone": 2, "remoteModifiedAt": 2, "remoteDeleted": false,
+     "expect": "keepLocal"},
+    {"name": "remote upsert newer than tombstone resurrects",
+     "localModifiedAt": null, "tombstone": 1, "remoteModifiedAt": 2, "remoteDeleted": false,
+     "expect": "applyRemote"},
+    {"name": "unknown entity remote upsert applies",
+     "localModifiedAt": null, "tombstone": null, "remoteModifiedAt": 1, "remoteDeleted": false,
+     "expect": "applyRemote"}
+  ]
+}
