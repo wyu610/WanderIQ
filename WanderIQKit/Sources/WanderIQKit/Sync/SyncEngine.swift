@@ -52,4 +52,20 @@ public enum SyncEngine {
             SyncMapping.apply(rec, to: &trip)
         }
     }
+
+    // MARK: - Local change capture (push side)
+
+    public static func captureUpsert(kind: EntityKind, id: UUID, tripID: UUID,
+                                     modifiedAt: Date, into outbox: inout Outbox) {
+        outbox.enqueue(PendingChange(kind: kind, id: id, tripID: tripID,
+                                     op: .upsert, modifiedAt: modifiedAt))
+    }
+
+    public static func captureDelete(kind: EntityKind, id: UUID, tripID: UUID,
+                                     deletedAt: Date, into outbox: inout Outbox,
+                                     state: inout SyncState) {
+        outbox.enqueue(PendingChange(kind: kind, id: id, tripID: tripID,
+                                     op: .delete, modifiedAt: deletedAt))
+        state.tombstones[id] = deletedAt
+    }
 }
