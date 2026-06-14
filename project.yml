@@ -28,8 +28,6 @@ targets:
     entitlements:
       path: WanderIQ.entitlements
       properties:
-        com.apple.developer.icloud-container-identifiers: [iCloud.com.wanderiq.WanderIQ]
-        com.apple.developer.icloud-services: [CloudKit]
         aps-environment: development
         com.apple.developer.applesignin: [Default]
     info:

@@ -8,7 +8,7 @@ final class AppModel {
     let store: TripStore
     private let repository: TripRepository
     @ObservationIgnored private var saveTasks: [UUID: Task<Void, Never>] = [:]
-    let sync: SyncCoordinator
+    let sync: SupabaseSyncCoordinator
 
     init() {
         let dir = URL.applicationSupportDirectory.appendingPathComponent("trips")
@@ -17,8 +17,8 @@ final class AppModel {
         // trips (files stay on disk either way; spec: surface a banner).
         let trips = (try? repository.loadAll()) ?? []
         self.store = TripStore(trips: trips)
-        self.sync = SyncCoordinator(store: store,
-                                    stateDirectory: URL.applicationSupportDirectory.appendingPathComponent("sync"))
+        self.sync = SupabaseSyncCoordinator(store: store,
+                                            stateDirectory: URL.applicationSupportDirectory.appendingPathComponent("sync"))
         seedIfNeeded()
         store.onChange = { [weak self] trip in
             self?.scheduleSave(trip)
@@ -32,12 +32,7 @@ final class AppModel {
             try? self?.repository.delete(id: id)
             self?.refreshReminders()
         }
-        Task { await sync.start() }
-        AppDelegate.sharedModel = self
-        if let pending = AppDelegate.pendingShareMetadata {
-            AppDelegate.pendingShareMetadata = nil
-            Task { await sync.acceptShare(metadata: pending) }
-        }
+        // Sync starts from WanderIQApp once the user is signed in.
     }
 
     // MARK: - Intents (views call these, not the store directly)

@@ -8,14 +8,12 @@ struct TripListView: View {
     @ViewBuilder
     private var syncStatusFooter: some View {
         switch model.sync.status {
-        case .unavailable(let reason):
-            Label(reason, systemImage: "icloud.slash")
         case .idle:
-            Label("Synced with iCloud", systemImage: "icloud")
+            Label("Synced", systemImage: "checkmark.circle")
         case .syncing:
-            Label("Syncing…", systemImage: "arrow.triangle.2.circlepath.icloud")
+            Label("Syncing…", systemImage: "arrow.triangle.2.circlepath")
         case .error(let message):
-            Label(message, systemImage: "exclamationmark.icloud")
+            Label(message, systemImage: "exclamationmark.triangle")
         }
     }
 
