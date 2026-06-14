@@ -31,6 +31,7 @@ targets:
         com.apple.developer.icloud-container-identifiers: [iCloud.com.wanderiq.WanderIQ]
         com.apple.developer.icloud-services: [CloudKit]
         aps-environment: development
+        com.apple.developer.applesignin: [Default]
     info:
       path: WanderIQ/Info.plist
       properties:
@@ -47,6 +48,8 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         SUPABASE_URL: $(SUPABASE_URL)
         SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [com.wanderiq]
         # ASC upload validation (error 90474) requires these; iPad must list
         # all four orientations because the app doesn't require full screen.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
