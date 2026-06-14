@@ -11,8 +11,7 @@ final class SupabaseRemoteSyncBackend: RemoteSyncBackend {
     init(client: SupabaseClient) { self.client = client }
 
     convenience init() {
-        self.init(client: SupabaseClient(supabaseURL: SupabaseConfig.url,
-                                         supabaseKey: SupabaseConfig.anonKey))
+        self.init(client: AppSupabase.client)
     }
 
     // MARK: Push
