@@ -6,11 +6,21 @@ import UIKit
 struct WanderIQApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var model = AppModel()
+    @State private var auth = AuthController()
 
     var body: some Scene {
         WindowGroup {
-            TripListView()
-                .environment(model)
+            Group {
+                switch auth.phase {
+                case .loading:
+                    ProgressView()
+                case .signedOut:
+                    AuthView()
+                case .signedIn:
+                    TripListView().environment(model)
+                }
+            }
+            .environment(auth)
         }
     }
 }
