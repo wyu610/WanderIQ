@@ -1,3 +1,8 @@
 // Copy to Signing.xcconfig (gitignored) and fill in your Apple Developer Team ID
 // (Xcode → Settings → Accounts, or developer.apple.com → Membership).
 DEVELOPMENT_TEAM = YOUR_TEAM_ID
+
+// Pulls in the Supabase client credentials (also gitignored). Copy
+// Supabase.xcconfig.example to Supabase.xcconfig and fill it in. Optional
+// include so the project still builds before Supabase is configured.
+#include? "Supabase.xcconfig"

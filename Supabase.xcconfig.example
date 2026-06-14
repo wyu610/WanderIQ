@@ -1,0 +1,4 @@
+// Copy to Supabase.xcconfig (gitignored) and fill in the dev project's
+// PUBLIC client credentials from Supabase dashboard → Settings → API.
+SUPABASE_URL = https:/$()/YOUR-REF.supabase.co
+SUPABASE_ANON_KEY = your-anon-public-key
