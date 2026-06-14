@@ -80,17 +80,21 @@ final class SupabaseSyncCoordinator {
         pushTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, let self, self.isAuthed else { return }
-            // Push a local copy: SyncEngine.push holds `inout` across awaits,
-            // which is unsafe on a class property. CAVEAT (revisit before
-            // merge): a mutation enqueued during the push await is preserved
-            // only if it arrives after this reassign; the cursor pull and the
-            // next push self-heal any gap. Acceptable for the build-only stage.
+            // SyncEngine.push can't take `inout self.outbox` across awaits
+            // (exclusivity on a class property), so push a snapshot copy, then
+            // acknowledge on the live outbox ONLY the keys actually sent. Edits
+            // enqueued during the await stay in self.outbox untouched, and a
+            // partial failure leaves un-sent entries queued.
+            let before = Set(self.outbox.pending.map(\.key))
             var box = self.outbox
             do {
                 try await SyncEngine.push(outbox: &box, store: self.store, backend: self.backend)
-                self.outbox = box
-                self.persist()
-            } catch { self.status = .error(error.localizedDescription) }
+            } catch {
+                self.status = .error(error.localizedDescription)
+            }
+            let sent = before.subtracting(box.pending.map(\.key))
+            for key in sent { self.outbox.acknowledge(key) }
+            self.persist()
         }
     }
 
