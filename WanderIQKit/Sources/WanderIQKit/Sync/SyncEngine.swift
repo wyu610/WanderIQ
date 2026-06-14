@@ -92,4 +92,39 @@ public enum SyncEngine {
         return SyncRecord(kind: change.kind, id: change.id, tripID: change.tripID,
                           modifiedAt: change.modifiedAt, deleted: false, fields: fields)
     }
+
+    // MARK: - Capture from a trip diff (push side)
+
+    /// Diff `old`→`new` and enqueue the resulting upserts/deletes. Saves carry
+    /// the entity's own modifiedAt; deletes carry `now` as the deletion time.
+    public static func capture(old: Trip?, new: Trip, into outbox: inout Outbox,
+                               state: inout SyncState, now: Date) {
+        let diff = TripDiff.changes(old: old, new: new)
+        for ref in diff.saves {
+            switch ref {
+            case .tripMeta:
+                captureUpsert(kind: .trip, id: new.id, tripID: new.id,
+                              modifiedAt: new.modifiedAt ?? now, into: &outbox)
+            case .day(let id):
+                let at = new.days.first { $0.id == id }?.modifiedAt ?? now
+                captureUpsert(kind: .day, id: id, tripID: new.id, modifiedAt: at, into: &outbox)
+            case .item(let id):
+                let at = new.items.first { $0.id == id }?.modifiedAt ?? now
+                captureUpsert(kind: .item, id: id, tripID: new.id, modifiedAt: at, into: &outbox)
+            }
+        }
+        for ref in diff.deletes {
+            switch ref {
+            case .tripMeta:
+                captureDelete(kind: .trip, id: new.id, tripID: new.id,
+                              deletedAt: now, into: &outbox, state: &state)
+            case .day(let id):
+                captureDelete(kind: .day, id: id, tripID: new.id,
+                              deletedAt: now, into: &outbox, state: &state)
+            case .item(let id):
+                captureDelete(kind: .item, id: id, tripID: new.id,
+                              deletedAt: now, into: &outbox, state: &state)
+            }
+        }
+    }
 }
