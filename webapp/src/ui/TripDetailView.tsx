@@ -2,6 +2,8 @@ import { useState } from "preact/hooks";
 import { trips, tripActions } from "./store";
 import type { ItemKind } from "../model/trip";
 import { ShareView } from "./ShareView";
+import { exportJSON, exportCSV } from "../export/tripExportCodec";
+import { download } from "./fileTransfer";
 
 const TABS: { id: ItemKind | "itinerary"; label: string; kinds: ItemKind[] }[] = [
   { id: "prep", label: "Prep", kinds: ["prep", "hotel", "doc"] },
@@ -30,6 +32,8 @@ export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () 
     <main class="tripdetail">
       <button class="link" onClick={onBack}>← Back</button>
       <button class="link" onClick={() => setSharing(true)}>Share</button>
+      <button class="link" onClick={() => download(`${trip.name || "trip"}.json`, exportJSON(trip), "application/json")}>Export JSON</button>
+      <button class="link" onClick={() => download(`${trip.name || "trip"}.csv`, exportCSV(trip), "text/csv")}>Export CSV</button>
       <h1>{trip.name}</h1>
       <nav class="tabs">
         {TABS.map((t, i) => (
