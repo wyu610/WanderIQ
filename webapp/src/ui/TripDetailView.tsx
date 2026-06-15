@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { trips, tripActions } from "./store";
 import type { ItemKind } from "../model/trip";
+import { ShareView } from "./ShareView";
 
 const TABS: { id: ItemKind | "itinerary"; label: string; kinds: ItemKind[] }[] = [
   { id: "prep", label: "Prep", kinds: ["prep", "hotel", "doc"] },
@@ -11,8 +12,15 @@ const TABS: { id: ItemKind | "itinerary"; label: string; kinds: ItemKind[] }[] =
 export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () => void }) {
   const [tab, setTab] = useState(0);
   const [label, setLabel] = useState("");
+  const [sharing, setSharing] = useState(false);
   const trip = trips.value.find((t) => t.id === tripId);
   if (!trip) return <main class="tripdetail"><button class="link" onClick={onBack}>← Back</button><p>Trip not found</p></main>;
+
+  if (sharing) return (
+    <main class="tripdetail">
+      <ShareView tripId={tripId} onClose={() => setSharing(false)} />
+    </main>
+  );
 
   const active = TABS[tab];
   const items = trip.items.filter((i) => active.kinds.includes(i.kind));
@@ -21,6 +29,7 @@ export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () 
   return (
     <main class="tripdetail">
       <button class="link" onClick={onBack}>← Back</button>
+      <button class="link" onClick={() => setSharing(true)}>Share</button>
       <h1>{trip.name}</h1>
       <nav class="tabs">
         {TABS.map((t, i) => (

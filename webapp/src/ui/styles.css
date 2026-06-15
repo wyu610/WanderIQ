@@ -7,3 +7,8 @@ body { margin: 0; }
 .tabs { display: flex; gap: 8px; margin: 12px 0; }
 .tabs button[aria-selected="true"] { font-weight: 700; }
 .done { text-decoration: line-through; opacity: .6; }
+.share header { display: flex; justify-content: space-between; align-items: center; }
+.share ul { list-style: none; padding: 0; }
+.share .muted { color: #888; font-size: .85em; }
+.share form { display: flex; gap: 8px; margin-top: 8px; }
+.share input { flex: 1; padding: 8px; }
