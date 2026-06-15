@@ -1,9 +1,11 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import WanderIQKit
 
 struct TripListView: View {
     @Environment(AppModel.self) private var model
     @State private var showingNewTrip = false
+    @State private var showingImporter = false
 
     @ViewBuilder
     private var syncStatusFooter: some View {
@@ -41,15 +43,37 @@ struct TripListView: View {
                 TripDetailView(tripID: id)
             }
             .toolbar {
-                Button {
-                    showingNewTrip = true
-                } label: {
+                Button { showingImporter = true } label: {
+                    Image(systemName: "square.and.arrow.down")
+                }
+                .accessibilityLabel("Import Trip")
+                Button { showingNewTrip = true } label: {
                     Image(systemName: "plus")
                 }
+            }
+            .fileImporter(isPresented: $showingImporter,
+                          allowedContentTypes: [.json, .commaSeparatedText, .plainText, .text]) { result in
+                importTrip(result)
             }
             .sheet(isPresented: $showingNewTrip) {
                 NewTripView()
             }
+        }
+    }
+
+    private func importTrip(_ result: Result<URL, Error>) {
+        guard case .success(let url) = result,
+              url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+        guard let data = try? Data(contentsOf: url) else { return }
+        if url.pathExtension.lowercased() == "csv" {
+            var trip = Trip(name: url.deletingPathExtension().lastPathComponent,
+                            startDate: Date(timeIntervalSince1970: 0),
+                            endDate: Date(timeIntervalSince1970: 0))
+            TripExportCodec.importCSVItems(String(decoding: data, as: UTF8.self), into: &trip)
+            model.addTrip(trip)
+        } else if let trip = try? TripExportCodec.importJSON(data) {
+            model.addTrip(trip)
         }
     }
 }
