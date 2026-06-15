@@ -12,6 +12,7 @@ export class WebSyncCoordinator {
   private readonly backend: RemoteSyncBackend = new SupabaseBackend(supabase);
   private readonly store = new IdbStore();
   private pushTimer: ReturnType<typeof setTimeout> | undefined;
+  onChange: (() => void) | undefined;
 
   /** Load persisted state, pull, and subscribe to Realtime. */
   async start(): Promise<void> {
@@ -28,13 +29,17 @@ export class WebSyncCoordinator {
     this.state.trips.set(next.id, next);
     void this.persist();
     this.schedulePush();
+    this.notify();
   }
 
   async fetchNow(): Promise<void> {
     const page = await this.backend.changes(this.state.cursor);
     applyPull(page.records, page.cursor, this.state);
     await this.persist();
+    this.notify();
   }
+
+  private notify(): void { this.onChange?.(); }
 
   private schedulePush(): void {
     clearTimeout(this.pushTimer);
@@ -52,6 +57,7 @@ export class WebSyncCoordinator {
       this.outbox.acknowledge(c);
     }
     await this.persist();
+    this.notify();
   }
 
   private subscribeRealtime(): void {
