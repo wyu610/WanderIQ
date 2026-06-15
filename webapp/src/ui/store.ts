@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { WebAuth, type Phase } from "../auth/webAuth";
 import { WebSyncCoordinator } from "../sync/webSyncCoordinator";
 import { newTrip, type ChecklistItem, type ItemKind, type Trip } from "../model/trip";
+import { claimInvites } from "../supabase/sharing";
 
 export const authPhase = signal<Phase>("loading");
 export const trips = signal<Trip[]>([]);
@@ -15,6 +16,7 @@ auth.onChange(() => {
 });
 
 async function startSync(): Promise<void> {
+  try { await claimInvites(); } catch { /* non-fatal; retried next sign-in */ }
   coordinator = new WebSyncCoordinator();
   coordinator.onChange = () => { trips.value = [...coordinator!.state.trips.values()]; };
   await coordinator.start();
