@@ -14,3 +14,6 @@ Supabase.xcconfig
 !.env.example
 supabase/.temp/
 supabase/.branches/
+
+# Playwright MCP artifacts
+.playwright-mcp/
