@@ -60,4 +60,7 @@ export const tripActions = {
     next.items.push(item);
     commit(next);
   },
+  importTrip(trip: Trip): void {
+    commit(trip);
+  },
 };
