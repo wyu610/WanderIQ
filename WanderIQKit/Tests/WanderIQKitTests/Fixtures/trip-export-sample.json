@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "name": "Sample Trip",
+  "startDate": "2026-07-11",
+  "endDate": "2026-07-12",
+  "destinations": ["Shanghai", "Hong Kong"],
+  "days": [
+    { "date": "2026-07-11", "city": "Shanghai", "title": "Arrive" },
+    { "date": "2026-07-12", "city": "Shanghai", "title": "Museum" }
+  ],
+  "items": [
+    { "kind": "prep", "label": "Passport", "notes": "", "dayIndex": null,
+      "time": null, "owner": "Mom", "isDone": true, "sortOrder": 0,
+      "reminderDate": null, "place": null },
+    { "kind": "itinerary", "label": "Astronomy Museum", "notes": "tickets",
+      "dayIndex": 1, "time": "09:30", "owner": null, "isDone": false, "sortOrder": 1,
+      "reminderDate": "2026-07-10T01:30:00Z",
+      "place": { "name": "Shanghai Astronomy Museum", "query": "Astronomy Museum",
+                 "latitude": 30.9, "longitude": 121.7 } }
+  ]
+}
