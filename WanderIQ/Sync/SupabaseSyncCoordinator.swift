@@ -40,6 +40,7 @@ final class SupabaseSyncCoordinator {
     /// Called after sign-in (and on launch if already signed in).
     func start() async {
         guard isAuthed else { return }
+        try? await SharingService().claimInvites()
         await fetchNow()
         subscribeRealtime()
     }
