@@ -1,0 +1,9 @@
+:root { font-family: -apple-system, system-ui, sans-serif; }
+body { margin: 0; }
+.auth, .triplist, .tripdetail { max-width: 640px; margin: 0 auto; padding: 16px; }
+.auth input, .auth button { display: block; width: 100%; margin: 8px 0; padding: 10px; font-size: 16px; }
+.error { color: #c00; }
+.link { background: none; border: none; color: #06c; cursor: pointer; }
+.tabs { display: flex; gap: 8px; margin: 12px 0; }
+.tabs button[aria-selected="true"] { font-weight: 700; }
+.done { text-decoration: line-through; opacity: .6; }

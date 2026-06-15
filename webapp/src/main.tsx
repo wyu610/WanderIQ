@@ -1,7 +1,5 @@
 import { render } from "preact";
-
-function App() {
-  return <h1>WanderIQ</h1>;
-}
+import { App } from "./ui/App";
+import "./ui/styles.css";
 
 render(<App />, document.getElementById("app")!);
