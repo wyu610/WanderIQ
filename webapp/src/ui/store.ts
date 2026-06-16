@@ -3,6 +3,8 @@ import { WebAuth, type Phase } from "../auth/webAuth";
 import { WebSyncCoordinator } from "../sync/webSyncCoordinator";
 import { newTrip, type ChecklistItem, type ItemKind, type Trip } from "../model/trip";
 import { claimInvites } from "../supabase/sharing";
+import { deleteAccount as rpcDeleteAccount } from "../supabase/account";
+import { IdbStore } from "../store/idbStore";
 
 export const authPhase = signal<Phase>("loading");
 export const trips = signal<Trip[]>([]);
@@ -23,12 +25,28 @@ async function startSync(): Promise<void> {
   trips.value = [...coordinator.state.trips.values()];
 }
 
+/** Clear local sync state (IndexedDB) and reload to a clean signed-out app — so
+ *  a shared browser shows nothing after sign-out and nothing lingers after an
+ *  account is deleted. */
+async function wipeLocalAndReload(): Promise<void> {
+  try { await new IdbStore().clear(); } catch { /* ignore */ }
+  location.reload();
+}
+
 export const authActions = {
   signIn: (e: string, p: string) => auth.signIn(e, p),
   signUp: (e: string, p: string) => auth.signUp(e, p),
   google: () => auth.signInWithGoogle(),
   apple: () => auth.signInWithApple(),
-  signOut: () => auth.signOut(),
+  async signOut(): Promise<void> {
+    await auth.signOut();
+    await wipeLocalAndReload();
+  },
+  async deleteAccount(): Promise<void> {
+    await rpcDeleteAccount();
+    await auth.signOut();
+    await wipeLocalAndReload();
+  },
 };
 
 function commit(next: Trip): void {

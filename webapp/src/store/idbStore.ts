@@ -27,4 +27,9 @@ export class IdbStore {
     const v = (await (await this.dbp).get(STORE, KEY)) as PersistedState | undefined;
     return v ?? { pending: [], tombstones: [], cursor: 0 };
   }
+
+  /** Drop persisted sync state (sign-out / account deletion wipe). */
+  async clear(): Promise<void> {
+    (await this.dbp).delete(STORE, KEY);
+  }
 }

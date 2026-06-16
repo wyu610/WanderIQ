@@ -12,3 +12,4 @@ body { margin: 0; }
 .share .muted { color: #888; font-size: .85em; }
 .share form { display: flex; gap: 8px; margin-top: 8px; }
 .share input { flex: 1; padding: 8px; }
+.link.danger { color: #d11; }

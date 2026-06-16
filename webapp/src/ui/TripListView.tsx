@@ -24,7 +24,7 @@ export function TripListView() {
 
   return (
     <main class="triplist">
-      <header><h1>Trips</h1><button class="link" onClick={() => fileRef.current?.click()}>Import</button><button class="link" onClick={() => void authActions.signOut()}>Sign out</button></header>
+      <header><h1>Trips</h1><button class="link" onClick={() => fileRef.current?.click()}>Import</button><button class="link" onClick={() => void authActions.signOut()}>Sign out</button><button class="link danger" onClick={() => { if (confirm("Permanently delete your account and all your trips? This can't be undone.")) void authActions.deleteAccount(); }}>Delete account</button></header>
       <input ref={fileRef} type="file" accept=".json,.csv,application/json,text/csv"
              style="display:none" onChange={(e) => void onPick(e)} />
       <ul>
