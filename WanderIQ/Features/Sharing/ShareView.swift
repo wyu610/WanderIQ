@@ -43,6 +43,7 @@ struct ShareView: View {
                     Section { Text(error).foregroundStyle(.red).font(.footnote) }
                 }
             }
+            .warmCanvas()
             .navigationTitle("Share Trip")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { Button("Done") { dismiss() } }

@@ -41,6 +41,7 @@ struct TripListView: View {
                     syncStatusFooter
                 }
             }
+            .warmCanvas()
             .refreshable { await model.sync.fetchNow() }
             .navigationTitle("Trips")
             .navigationDestination(for: UUID.self) { id in
@@ -161,6 +162,7 @@ struct NewTripView: View {
                 DatePicker("Start", selection: $start, displayedComponents: .date)
                 DatePicker("End", selection: $end, in: start..., displayedComponents: .date)
             }
+            .warmCanvas()
             .navigationTitle("New Trip")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

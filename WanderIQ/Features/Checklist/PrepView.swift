@@ -12,6 +12,7 @@ struct PrepView: View {
             section(kind: .hotel, title: "Hotels")
             section(kind: .doc, title: "Documents")
         }
+        .warmCanvas()
         .sheet(item: $editing) { context in
             ItemEditorView(context: context, trip: trip)
         }

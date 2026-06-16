@@ -50,7 +50,22 @@ struct AuthView: View {
                     Section { Text(err).foregroundStyle(.red).font(.footnote) }
                 }
             }
-            .navigationTitle("WanderIQ")
+            .warmCanvas()
+            .safeAreaInset(edge: .top) {
+                VStack(spacing: 4) {
+                    Text("WanderIQ")
+                        .font(.system(size: 38, weight: .bold, design: .serif))
+                        .foregroundStyle(Color.wInk)
+                    Text("Plan trips together.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 28)
+                .padding(.bottom, 12)
+                .background(Color.wSand)
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

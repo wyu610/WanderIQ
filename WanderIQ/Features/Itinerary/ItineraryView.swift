@@ -16,6 +16,7 @@ struct ItineraryView: View {
             }
         }
         .listStyle(.sidebar)
+        .warmCanvas()
         .sheet(item: $editing) { context in
             ItemEditorView(context: context, trip: trip)
         }

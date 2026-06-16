@@ -5,6 +5,8 @@ struct WanderIQApp: App {
     @State private var model = AppModel()
     @State private var auth = AuthController()
 
+    init() { Theme.apply() }
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -20,6 +22,7 @@ struct WanderIQApp: App {
                 }
             }
             .environment(auth)
+            .tint(.wTerracotta)
         }
     }
 }

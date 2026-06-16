@@ -98,6 +98,7 @@ struct ItemEditorView: View {
                     }
                 }
             }
+            .warmCanvas()
             .navigationTitle(editedItem == nil ? "New Item" : "Edit Item")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
