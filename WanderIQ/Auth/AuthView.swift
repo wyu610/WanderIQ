@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct AuthView: View {
     @Environment(AuthController.self) private var auth
@@ -32,6 +33,19 @@ struct AuthView: View {
                     }
                     .font(.footnote)
                 }
+                Section("Or") {
+                    SignInWithAppleButton(.signIn) { request in
+                        request.requestedScopes = [.fullName, .email]
+                    } onCompletion: { result in
+                        Task { await handleApple(result) }
+                    }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 44)
+
+                    Button("Continue with Google") {
+                        Task { await auth.signInWithGoogle() }
+                    }
+                }
                 if let err = auth.lastError {
                     Section { Text(err).foregroundStyle(.red).font(.footnote) }
                 }
@@ -46,5 +60,13 @@ struct AuthView: View {
         case .signIn: await auth.signIn(email: email, password: password)
         case .signUp: await auth.signUp(email: email, password: password)
         }
+    }
+
+    private func handleApple(_ result: Result<ASAuthorization, Error>) async {
+        guard case let .success(authResult) = result,
+              let cred = authResult.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = cred.identityToken,
+              let idToken = String(data: tokenData, encoding: .utf8) else { return }
+        await auth.signInWithApple(idToken: idToken, fullName: cred.fullName?.formatted())
     }
 }

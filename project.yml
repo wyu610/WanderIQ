@@ -25,6 +25,12 @@ targets:
         product: Supabase
     scheme:
       testTargets: [WanderIQUITests]
+    entitlements:
+      path: WanderIQ.entitlements
+      properties:
+        # Sign in with Apple (native). No aps-environment: the app uses only
+        # local notifications, so declaring push would risk guideline 2.5.4.
+        com.apple.developer.applesignin: [Default]
     info:
       path: WanderIQ/Info.plist
       properties:
@@ -40,6 +46,9 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         SUPABASE_URL: $(SUPABASE_URL)
         SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
+        # Google OAuth redirect (supabase-swift signInWithOAuth → com.wanderiq://).
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [com.wanderiq]
         # ASC upload validation (error 90474) requires these; iPad must list
         # all four orientations because the app doesn't require full screen.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
