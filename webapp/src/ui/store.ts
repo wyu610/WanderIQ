@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { WebAuth, type Phase } from "../auth/webAuth";
 import { WebSyncCoordinator } from "../sync/webSyncCoordinator";
 import { newTrip, type ChecklistItem, type ItemKind, type Trip } from "../model/trip";
+import { daysInRange } from "../model/tripDays";
 import { claimInvites } from "../supabase/sharing";
 import { deleteAccount as rpcDeleteAccount } from "../supabase/account";
 import { IdbStore } from "../store/idbStore";
@@ -57,7 +58,7 @@ function commit(next: Trip): void {
 
 export const tripActions = {
   create(name: string, start: number, end: number): void {
-    commit(newTrip({ name, startDate: start, endDate: end }));
+    commit(newTrip({ name, startDate: start, endDate: end, days: end >= start ? daysInRange(start, end) : [] }));
   },
   toggleItem(tripId: string, itemId: string): void {
     const t = coordinator?.state.trips.get(tripId);
@@ -80,5 +81,21 @@ export const tripActions = {
   },
   importTrip(trip: Trip): void {
     commit(trip);
+  },
+  upsertItem(tripId: string, item: ChecklistItem): void {
+    const t = coordinator?.state.trips.get(tripId);
+    if (!t) return;
+    const next: Trip = structuredClone(t);
+    const i = next.items.findIndex((x) => x.id === item.id);
+    if (i >= 0) next.items[i] = { ...item, modifiedAt: Math.floor(Date.now() / 1000) };
+    else next.items.push({ ...item, sortOrder: next.items.length, modifiedAt: Math.floor(Date.now() / 1000) });
+    commit(next);
+  },
+  deleteItem(tripId: string, itemId: string): void {
+    const t = coordinator?.state.trips.get(tripId);
+    if (!t) return;
+    const next: Trip = structuredClone(t);
+    next.items = next.items.filter((x) => x.id !== itemId);
+    commit(next);
   },
 };
