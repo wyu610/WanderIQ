@@ -25,18 +25,12 @@ targets:
         product: Supabase
     scheme:
       testTargets: [WanderIQUITests]
-    entitlements:
-      path: WanderIQ.entitlements
-      properties:
-        aps-environment: development
-        com.apple.developer.applesignin: [Default]
     info:
       path: WanderIQ/Info.plist
       properties:
         UILaunchScreen: {}
         CFBundleDisplayName: WanderIQ
         CFBundleLocalizations: [en, zh-Hans]
-        UIBackgroundModes: [remote-notification]
         # Wire versions to build settings; XcodeGen otherwise hardcodes 1.0/1
         # and MARKETING_VERSION never reaches the binary.
         CFBundleShortVersionString: $(MARKETING_VERSION)
@@ -46,8 +40,6 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         SUPABASE_URL: $(SUPABASE_URL)
         SUPABASE_ANON_KEY: $(SUPABASE_ANON_KEY)
-        CFBundleURLTypes:
-          - CFBundleURLSchemes: [com.wanderiq]
         # ASC upload validation (error 90474) requires these; iPad must list
         # all four orientations because the app doesn't require full screen.
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
@@ -56,10 +48,10 @@ targets:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
-        CURRENT_PROJECT_VERSION: 1
-        # 1.0 (1) is what actually shipped to TestFlight on 2026-06-12 (the
-        # old 0.3.0 here never reached binaries). Bump CURRENT_PROJECT_VERSION
-        # for each new upload of the same marketing version.
+        # v2 (accounts + Supabase sync, CloudKit retired) ships as 1.0 build 2 —
+        # the first PUBLIC App Store release. 1.0 (1) only went to TestFlight.
+        # Bump CURRENT_PROJECT_VERSION for each new upload of the same version.
+        CURRENT_PROJECT_VERSION: 2
         MARKETING_VERSION: "1.0"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   WanderIQUITests:
