@@ -57,11 +57,12 @@ targets:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
-        # v2 (accounts + Supabase sync, CloudKit retired) ships as 1.0 build 2 —
-        # the first PUBLIC App Store release. 1.0 (1) only went to TestFlight.
-        # Bump CURRENT_PROJECT_VERSION for each new upload of the same version.
-        CURRENT_PROJECT_VERSION: 2
-        MARKETING_VERSION: "1.0"
+        # v2 (accounts + Supabase sync, CloudKit retired) ships publicly as 2.1.
+        # 1.0 (1) only ever went to TestFlight. Build number resets to 1 for the
+        # new 2.1 version train; bump CURRENT_PROJECT_VERSION for each re-upload
+        # of 2.1.
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "2.1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   WanderIQUITests:
     type: bundle.ui-testing
