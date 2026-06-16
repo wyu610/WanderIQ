@@ -6,6 +6,8 @@ import { TripDetailView } from "./TripDetailView";
 export function TripListView() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function onPick(e: Event): Promise<void> {
@@ -32,13 +34,28 @@ export function TripListView() {
           <li key={t.id}>
             <button class="link" onClick={() => setOpenId(t.id)}>
               {t.name || "(untitled)"} — {t.items.filter((i) => i.isDone).length}/{t.items.length}
+              {t.startDate > 0 && (
+                <span class="trip-dates"> · {new Date(t.startDate * 1000).toLocaleDateString()}–{new Date(t.endDate * 1000).toLocaleDateString()}</span>
+              )}
             </button>
           </li>
         ))}
       </ul>
-      <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) { tripActions.create(name.trim(), 0, 0); setName(""); } }}>
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        if (!name.trim()) return;
+        const start = startDate ? Date.parse(startDate + "T00:00:00Z") / 1000 : 0;
+        const rawEnd = endDate ? Date.parse(endDate + "T00:00:00Z") / 1000 : 0;
+        const end = start > 0 && rawEnd >= start ? rawEnd : start;
+        tripActions.create(name.trim(), isNaN(start) ? 0 : start, isNaN(end) ? 0 : end);
+        setName(""); setStartDate(""); setEndDate("");
+      }}>
         <input placeholder="New trip name" value={name}
                onInput={(e) => setName((e.target as HTMLInputElement).value)} />
+        <input type="date" value={startDate}
+               onInput={(e) => setStartDate((e.target as HTMLInputElement).value)} />
+        <input type="date" value={endDate}
+               onInput={(e) => setEndDate((e.target as HTMLInputElement).value)} />
         <button type="submit">Add Trip</button>
       </form>
     </main>
