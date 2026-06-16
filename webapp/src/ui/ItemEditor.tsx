@@ -8,6 +8,7 @@ interface Props {
   trip: Trip;
   item?: ChecklistItem;
   kind: ItemKind;
+  initialDayId?: string; // preset day for a NEW itinerary item added from a day section
   onClose: () => void;
 }
 
@@ -17,11 +18,11 @@ function toLocalInput(sec: number): string {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
-export function ItemEditor({ tripId, trip, item, kind, onClose }: Props) {
+export function ItemEditor({ tripId, trip, item, kind, initialDayId, onClose }: Props) {
   const [label, setLabel] = useState(item?.label ?? "");
   const [notes, setNotes] = useState(item?.notes ?? "");
   const [owner, setOwner] = useState(item?.owner ?? "");
-  const [dayId, setDayId] = useState(item?.dayId ?? "");
+  const [dayId, setDayId] = useState(item?.dayId ?? initialDayId ?? "");
   const [time, setTime] = useState(item?.time ?? "");
   // datetime-local shows LOCAL wall-clock; save (Date.parse below) also reads it
   // as local, so load must convert the stored epoch to local — not UTC — or a

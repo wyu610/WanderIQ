@@ -16,7 +16,9 @@ body { margin: 0; }
 .item-detail { font-size: .8em; color: #666; margin-left: 24px; }
 .item-label { cursor: pointer; text-decoration: underline dotted; }
 .item-label:hover { color: #06c; }
-.itinerary-day h3 { font-size: .95em; font-weight: 600; margin: 16px 0 4px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+.kind-section h3 { font-size: .95em; font-weight: 600; margin: 16px 0 4px; border-bottom: 1px solid #ddd; padding-bottom: 4px; display: flex; justify-content: space-between; }
+.kind-section ul { list-style: none; padding: 0; margin: 4px 0; }
+.kind-section .add-item { font-size: .9em; }
 .editor { max-width: 640px; margin: 0 auto; padding: 16px; }
 .editor-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .editor-header strong { flex: 1; }

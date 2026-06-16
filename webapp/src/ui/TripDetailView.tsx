@@ -7,17 +7,24 @@ import { mapsUrl } from "./mapsLink";
 import { exportJSON, exportCSV } from "../export/tripExportCodec";
 import { download } from "./fileTransfer";
 
-const TABS: { id: ItemKind | "itinerary"; label: string; kinds: ItemKind[] }[] = [
-  { id: "prep", label: "Prep", kinds: ["prep", "hotel", "doc"] },
-  { id: "itinerary", label: "Itinerary", kinds: ["itinerary"] },
-  { id: "packing", label: "Packing", kinds: ["packing"] },
+type TabId = "prep" | "itinerary" | "packing";
+const TABS: { id: TabId; label: string }[] = [
+  { id: "prep", label: "Prep" },
+  { id: "itinerary", label: "Itinerary" },
+  { id: "packing", label: "Packing" },
+];
+
+// Prep sub-sections, mirroring the iOS PrepView (Bookings/Hotels/Documents).
+const PREP_SECTIONS: { kind: ItemKind; label: string }[] = [
+  { kind: "prep", label: "Bookings" },
+  { kind: "hotel", label: "Hotels" },
+  { kind: "doc", label: "Documents" },
 ];
 
 export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () => void }) {
-  const [tab, setTab] = useState(0);
-  const [label, setLabel] = useState("");
+  const [tab, setTab] = useState<TabId>("prep");
   const [sharing, setSharing] = useState(false);
-  const [editing, setEditing] = useState<{ item?: ChecklistItem } | null>(null);
+  const [editing, setEditing] = useState<{ item?: ChecklistItem; kind: ItemKind; dayId?: string } | null>(null);
   const trip = trips.value.find((t) => t.id === tripId);
   if (!trip) return <main class="tripdetail"><button class="link" onClick={onBack}>← Back</button><p>Trip not found</p></main>;
 
@@ -27,115 +34,80 @@ export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () 
     </main>
   );
 
-  const active = TABS[tab];
-  const addKind: ItemKind = active.id === "itinerary" ? "itinerary" : active.id === "packing" ? "packing" : "prep";
-
   if (editing) return (
     <main class="tripdetail">
       <ItemEditor
         tripId={tripId}
         trip={trip}
         item={editing.item}
-        kind={editing.item?.kind ?? addKind}
+        kind={editing.item?.kind ?? editing.kind}
+        initialDayId={editing.dayId}
         onClose={() => setEditing(null)}
       />
     </main>
   );
 
-  const items = trip.items.filter((i) => active.kinds.includes(i.kind));
+  const byKind = (kind: ItemKind) =>
+    trip.items.filter((i) => i.kind === kind).sort((a, b) => a.sortOrder - b.sortOrder);
 
-  // For the Itinerary tab, build day-grouped view
-  let itemsContent;
-  if (active.id === "itinerary") {
-    const byDay = new Map<string, ChecklistItem[]>();
-    const unscheduled: ChecklistItem[] = [];
-    for (const it of items) {
-      if (it.dayId) {
-        const arr = byDay.get(it.dayId) ?? [];
-        arr.push(it);
-        byDay.set(it.dayId, arr);
-      } else {
-        unscheduled.push(it);
-      }
-    }
-    const sortByTime = (a: ChecklistItem, b: ChecklistItem) =>
-      (a.time ?? "").localeCompare(b.time ?? "");
+  const row = (it: ChecklistItem) => (
+    <li key={it.id}>
+      <label class={it.isDone ? "done" : ""}>
+        <input type="checkbox" checked={it.isDone} onChange={() => tripActions.toggleItem(tripId, it.id)} />
+        <span class="item-label" onClick={() => setEditing({ item: it, kind: it.kind })}>{it.label}</span>
+      </label>
+      {(it.time || it.owner || it.place) && (
+        <div class="item-detail">
+          {[it.time, it.owner].filter(Boolean).join(" · ")}
+          {it.place && (
+            <>{(it.time || it.owner) ? " · " : ""}<a href={mapsUrl(it.place)} target="_blank" rel="noopener">Open in Maps</a></>
+          )}
+        </div>
+      )}
+    </li>
+  );
 
-    itemsContent = (
-      <div>
-        {trip.days.map((d) => {
-          const dayItems = (byDay.get(d.id) ?? []).slice().sort(sortByTime);
-          return (
-            <div key={d.id} class="itinerary-day">
-              <h3>
-                {new Date(d.date * 1000).toLocaleDateString()}
-                {d.title ? ` — ${d.title}` : ""}
-              </h3>
-              <ul>
-                {dayItems.map((it) => (
-                  <li key={it.id}>
-                    <label class={it.isDone ? "done" : ""}>
-                      <input type="checkbox" checked={it.isDone}
-                             onChange={() => tripActions.toggleItem(tripId, it.id)} />
-                      <span class="item-label" onClick={() => setEditing({ item: it })}>{it.label}</span>
-                    </label>
-                    <div class="item-detail">
-                      {it.time && <span>{it.time}</span>}
-                      {it.owner && <span> · {it.owner}</span>}
-                      {it.place && (
-                        <> · <a href={mapsUrl(it.place)} target="_blank" rel="noopener">Open in Maps</a></>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
-        {unscheduled.length > 0 && (
-          <div class="itinerary-day">
-            <h3>Unscheduled</h3>
-            <ul>
-              {unscheduled.slice().sort(sortByTime).map((it) => (
-                <li key={it.id}>
-                  <label class={it.isDone ? "done" : ""}>
-                    <input type="checkbox" checked={it.isDone}
-                           onChange={() => tripActions.toggleItem(tripId, it.id)} />
-                    <span class="item-label" onClick={() => setEditing({ item: it })}>{it.label}</span>
-                  </label>
-                  <div class="item-detail">
-                    {it.owner && <span>{it.owner}</span>}
-                    {it.place && (
-                      <> · <a href={mapsUrl(it.place)} target="_blank" rel="noopener">Open in Maps</a></>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+  const section = (label: string, kind: ItemKind, list: ChecklistItem[], dayId?: string) => (
+    <div class="kind-section" key={`${label}-${dayId ?? ""}`}>
+      <h3>{label} <span class="muted">{list.filter((i) => i.isDone).length}/{list.length}</span></h3>
+      <ul>{list.map(row)}</ul>
+      <button class="link add-item" onClick={() => setEditing({ kind, dayId })}>＋ Add Item</button>
+    </div>
+  );
+
+  let content;
+  if (tab === "prep") {
+    content = <>{PREP_SECTIONS.map((s) => section(s.label, s.kind, byKind(s.kind)))}</>;
+  } else if (tab === "packing") {
+    const list = byKind("packing");
+    content = (
+      <>
+        {section("Packing", "packing", list)}
+        {list.some((i) => i.isDone) && (
+          <button class="link" onClick={() => tripActions.resetPacking(tripId)}>↺ Reset packing list</button>
         )}
-      </div>
+      </>
     );
   } else {
-    itemsContent = (
-      <ul>
-        {items.map((it) => (
-          <li key={it.id}>
-            <label class={it.isDone ? "done" : ""}>
-              <input type="checkbox" checked={it.isDone}
-                     onChange={() => tripActions.toggleItem(tripId, it.id)} />
-              <span class="item-label" onClick={() => setEditing({ item: it })}>{it.label}</span>
-            </label>
-            <div class="item-detail">
-              {it.time && <span>{it.time}</span>}
-              {it.owner && <span>{it.time ? " · " : ""}{it.owner}</span>}
-              {it.place && (
-                <> {(it.time || it.owner) ? " · " : ""}<a href={mapsUrl(it.place)} target="_blank" rel="noopener">Open in Maps</a></>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+    // Itinerary: one section per day (mirrors iOS), timed items first.
+    const dayList = (dayId: string) =>
+      trip.items.filter((i) => i.kind === "itinerary" && i.dayId === dayId)
+        .sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
+    const unscheduled = trip.items.filter((i) => i.kind === "itinerary" && !i.dayId)
+      .sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
+    content = (
+      <>
+        {trip.days.map((d) =>
+          section(
+            `${new Date(d.date * 1000).toLocaleDateString()}${d.title ? ` — ${d.title}` : ""}`,
+            "itinerary",
+            dayList(d.id),
+            d.id,
+          ),
+        )}
+        {unscheduled.length > 0 && section("Unscheduled", "itinerary", unscheduled)}
+        {trip.days.length === 0 && <p class="muted">Add start and end dates to the trip to plan days.</p>}
+      </>
     );
   }
 
@@ -147,17 +119,11 @@ export function TripDetailView({ tripId, onBack }: { tripId: string; onBack: () 
       <button class="link" onClick={() => download(`${trip.name || "trip"}.csv`, exportCSV(trip), "text/csv")}>Export CSV</button>
       <h1>{trip.name}</h1>
       <nav class="tabs">
-        {TABS.map((t, i) => (
-          <button key={t.id} aria-selected={i === tab} onClick={() => setTab(i)}>{t.label}</button>
+        {TABS.map((t) => (
+          <button key={t.id} aria-selected={t.id === tab} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
       </nav>
-      {itemsContent}
-      <form onSubmit={(e) => { e.preventDefault(); if (label.trim()) { tripActions.addItem(tripId, addKind, label.trim()); setLabel(""); } }}>
-        <input placeholder={`Add to ${active.label}`} value={label}
-               onInput={(e) => setLabel((e.target as HTMLInputElement).value)} />
-        <button type="submit">Add</button>
-        <button type="button" class="link" onClick={() => setEditing({})}>＋ details</button>
-      </form>
+      {content}
     </main>
   );
 }

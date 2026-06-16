@@ -98,4 +98,13 @@ export const tripActions = {
     next.items = next.items.filter((x) => x.id !== itemId);
     commit(next);
   },
+  resetPacking(tripId: string): void {
+    const t = coordinator?.state.trips.get(tripId);
+    if (!t) return;
+    const now = Math.floor(Date.now() / 1000);
+    const next: Trip = structuredClone(t);
+    next.items = next.items.map((i) =>
+      i.kind === "packing" && i.isDone ? { ...i, isDone: false, modifiedAt: now } : i);
+    commit(next);
+  },
 };
