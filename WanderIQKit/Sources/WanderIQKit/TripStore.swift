@@ -36,6 +36,12 @@ public final class TripStore {
         trips.removeAll { $0.id == id }
     }
 
+    /// Drop all in-memory trips WITHOUT firing change callbacks — a local reset
+    /// for sign-out / account deletion, not a sync event.
+    public func clearAll() {
+        trips = []
+    }
+
     private func mutate(_ tripID: UUID, _ change: (inout Trip) -> Void) {
         guard let i = trips.firstIndex(where: { $0.id == tripID }) else { return }
         change(&trips[i])

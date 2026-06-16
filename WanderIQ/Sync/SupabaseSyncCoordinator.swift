@@ -123,4 +123,15 @@ final class SupabaseSyncCoordinator {
     func stop() {
         pushTask?.cancel(); realtime?.cancel()
     }
+
+    /// Wipe local sync state on sign-out / account deletion so the next signed-in
+    /// user starts from a clean slate (no stale outbox or pull cursor).
+    func reset() {
+        stop()
+        outbox = Outbox()
+        state = SyncState()
+        lastKnown = [:]
+        status = .idle
+        persist()
+    }
 }

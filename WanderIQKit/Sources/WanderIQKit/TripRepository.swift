@@ -41,4 +41,14 @@ public struct TripRepository {
             try FileManager.default.removeItem(at: url)
         }
     }
+
+    /// Remove every persisted trip document (sign-out / account deletion wipe).
+    public func deleteAll() throws {
+        guard FileManager.default.fileExists(atPath: directory.path) else { return }
+        for url in try FileManager.default
+            .contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter({ $0.pathExtension == "json" }) {
+            try FileManager.default.removeItem(at: url)
+        }
+    }
 }

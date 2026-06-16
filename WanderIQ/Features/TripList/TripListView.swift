@@ -4,8 +4,12 @@ import WanderIQKit
 
 struct TripListView: View {
     @Environment(AppModel.self) private var model
+    @Environment(AuthController.self) private var auth
     @State private var showingNewTrip = false
     @State private var showingImporter = false
+    @State private var showingDeleteConfirm = false
+    @State private var errorMessage: String?
+    private let account = AccountService()
 
     @ViewBuilder
     private var syncStatusFooter: some View {
@@ -43,12 +47,27 @@ struct TripListView: View {
                 TripDetailView(tripID: id)
             }
             .toolbar {
-                Button { showingImporter = true } label: {
-                    Image(systemName: "square.and.arrow.down")
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Button("Sign Out") { Task { await signOut() } }
+                        Button("Delete Account…", role: .destructive) {
+                            showingDeleteConfirm = true
+                        }
+                    } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                    .accessibilityLabel("Account")
                 }
-                .accessibilityLabel("Import Trip")
-                Button { showingNewTrip = true } label: {
-                    Image(systemName: "plus")
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingImporter = true } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                    .accessibilityLabel("Import Trip")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingNewTrip = true } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
             .fileImporter(isPresented: $showingImporter,
@@ -58,6 +77,33 @@ struct TripListView: View {
             .sheet(isPresented: $showingNewTrip) {
                 NewTripView()
             }
+            .alert("Delete Account?", isPresented: $showingDeleteConfirm) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) { Task { await deleteAccount() } }
+            } message: {
+                Text("This permanently deletes your account and all your trips on every device. This can't be undone.")
+            }
+            .alert("Couldn't delete account", isPresented: Binding(
+                get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    private func signOut() async {
+        await auth.signOut()
+        model.wipeLocalData()
+    }
+
+    private func deleteAccount() async {
+        do {
+            try await account.deleteAccount()
+            await auth.signOut()
+            model.wipeLocalData()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

@@ -73,6 +73,17 @@ final class AppModel {
         store.resetPacking(in: tripID)
     }
 
+    /// Clear all on-device data (trips, persisted files, sync outbox/cursor) so a
+    /// shared device shows nothing after sign-out, and nothing lingers after an
+    /// account is deleted. Local-only — does not touch the server.
+    func wipeLocalData() {
+        sync.reset()
+        store.clearAll()
+        try? repository.deleteAll()
+        saveTasks.values.forEach { $0.cancel() }
+        saveTasks.removeAll()
+    }
+
     // MARK: - Persistence (debounced, mirrors the PWA's 150 ms save)
 
     private func scheduleSave(_ trip: Trip) {
