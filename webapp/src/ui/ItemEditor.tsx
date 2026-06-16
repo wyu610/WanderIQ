@@ -11,14 +11,23 @@ interface Props {
   onClose: () => void;
 }
 
+/** epoch seconds → "YYYY-MM-DDTHH:mm" in LOCAL time for <input type=datetime-local>. */
+function toLocalInput(sec: number): string {
+  const d = new Date(sec * 1000);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export function ItemEditor({ tripId, trip, item, kind, onClose }: Props) {
   const [label, setLabel] = useState(item?.label ?? "");
   const [notes, setNotes] = useState(item?.notes ?? "");
   const [owner, setOwner] = useState(item?.owner ?? "");
   const [dayId, setDayId] = useState(item?.dayId ?? "");
   const [time, setTime] = useState(item?.time ?? "");
+  // datetime-local shows LOCAL wall-clock; save (Date.parse below) also reads it
+  // as local, so load must convert the stored epoch to local — not UTC — or a
+  // round-trip would shift the reminder by the timezone offset.
   const [reminder, setReminder] = useState(
-    item?.reminderDate ? new Date(item.reminderDate * 1000).toISOString().slice(0, 16) : ""
+    item?.reminderDate ? toLocalInput(item.reminderDate) : ""
   );
   const [placeName, setPlaceName] = useState(item?.place?.name ?? "");
   const [placeQuery, setPlaceQuery] = useState(item?.place?.query ?? "");
