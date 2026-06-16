@@ -13,3 +13,19 @@ body { margin: 0; }
 .share form { display: flex; gap: 8px; margin-top: 8px; }
 .share input { flex: 1; padding: 8px; }
 .link.danger { color: #d11; }
+.item-detail { font-size: .8em; color: #666; margin-left: 24px; }
+.item-label { cursor: pointer; text-decoration: underline dotted; }
+.item-label:hover { color: #06c; }
+.itinerary-day h3 { font-size: .95em; font-weight: 600; margin: 16px 0 4px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+.editor { max-width: 640px; margin: 0 auto; padding: 16px; }
+.editor-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.editor-header strong { flex: 1; }
+.editor-form label { display: flex; flex-direction: column; margin-bottom: 12px; font-size: .9em; font-weight: 500; }
+.editor-form input, .editor-form textarea, .editor-form select { margin-top: 4px; padding: 8px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
+.editor-form textarea { resize: vertical; }
+.editor-form fieldset { border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; padding: 12px; }
+.editor-form fieldset legend { font-size: .85em; font-weight: 600; color: #555; }
+.maps-link { display: inline-block; margin-top: 6px; color: #06c; font-size: .9em; }
+.editor-actions { margin-top: 16px; }
+.editor-actions button { padding: 10px 24px; font-size: 16px; }
+.hint { font-size: .8em; color: #888; margin: -8px 0 12px; }
