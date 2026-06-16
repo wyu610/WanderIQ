@@ -1,4 +1,7 @@
-# WanderIQ 1.0 (2) — App Store submission notes (v2, account-based)
+# WanderIQ 2.1 (1) — App Store submission notes (v2, account-based)
+
+> Public release ships as **version 2.1, build 1**. (1.0 only reached TestFlight.)
+> In App Store Connect, create a **new 2.1 version** and attach the 2.1 (1) build.
 
 The v2 build adds accounts + cloud sync, so the **App Privacy** section changes from
 v1's "Data Not Collected." Below are the exact answers to enter in App Store Connect,
@@ -32,12 +35,9 @@ tracking; ATT not used).
 - Do NOT declare: Location, Health, Financial, Browsing History, Search History,
   Contacts, Photos, Diagnostics — none are collected.
 
-**Privacy Policy URL (required):** ⚠️ the existing `trip-webapp/privacy.html` is
-CloudKit-era and now inaccurate (it predates accounts/Supabase). You need a public
-privacy-policy URL that reflects: we collect email + trip content, store/process it
-via Supabase, use it only to sync and share trips, and the user can delete their
-data. (Ask me to rewrite + host this on the web app when you're ready — it's a
-~10-minute follow-up; the field is mandatory before you can submit.)
+**Privacy Policy URL (required):** ✅ use **`https://wander-iq.vercel.app/privacy.html`**
+— the v2-accurate, bilingual policy (email + trip content via Supabase, used only
+to sync/share, in-app deletion). Already live.
 
 ---
 
@@ -57,13 +57,16 @@ Demo account:
 
 Notes for the reviewer:
 - Sign in with the credentials above (or tap "Sign Up" to make a new account —
-  email confirmation is disabled, so sign-up is immediate).
+  email confirmation is disabled, so sign-up is immediate). Sign in with Apple
+  and Continue with Google are also available.
 - After sign-in you'll see the trip list. Tap a trip to see Prep / Itinerary /
   Packing checklists; tap a row to check it off.
 - Tap "+" to create a trip. The person icon (top-right of a trip) invites another
   person by email as viewer or editor.
 - Export/Import: inside a trip, the Export menu saves the trip as JSON or CSV;
   on the trip list, Import reads a JSON/CSV file as a new trip.
+- Account deletion: the account menu (person icon, top-left of the trip list) has
+  "Delete Account", which permanently removes the account and all data.
 - The same account also works on the web app (https://wander-iq.vercel.app).
 - No special hardware required; everything works in the simulator.
 ```
@@ -75,13 +78,13 @@ dedicated username/password fields (in addition to the notes).
 
 ## Pre-submit checklist
 
-- [ ] Build **1.0 (2)** processed in TestFlight (Phase 2 upload).
-- [ ] Tested signed-in on a real device: web-created trip `tes 123` appears (sync ✓).
+- [ ] Archive + upload **2.1 (1)**; confirm it processes in TestFlight.
+- [ ] Tested signed-in on a real device: sync works; Apple + Google sign-in work.
 - [ ] App Privacy updated per the table above (no longer "Data Not Collected").
-- [ ] Privacy Policy URL set (rewrite the stale one first — see ⚠️ above).
+- [ ] Privacy Policy URL set → `https://wander-iq.vercel.app/privacy.html`.
 - [ ] Screenshots reflect v2 (login + sharing) — optional refresh.
 - [ ] Listing copy from `listing.md` pasted (EN + zh-Hans), Category = Travel,
       Age 4+, Price Free.
 - [ ] App Review notes + demo account filled.
-- [ ] Build 1.0 (2) attached to the 1.0 App Store version → **Submit for Review**.
+- [ ] Create a **2.1** version in ASC, attach build 2.1 (1) → **Submit for Review**.
 - Export compliance: already handled (ITSAppUsesNonExemptEncryption=false) — no prompt.
