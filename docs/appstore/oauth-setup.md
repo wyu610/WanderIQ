@@ -32,24 +32,32 @@ Apple / Supabase accounts and secret keys — they can't be automated.
 
 ---
 
-## Apple (more involved — optional for web; required on iOS if you ship Apple sign-in)
+## Apple (more involved — needs a Services ID + a signing key)
 
-Apple web sign-in ("Sign in with Apple" via OAuth) needs a Services ID + a key:
+Note your **Team ID** first (Apple Developer → top-right, or Membership page; 10 chars).
 
-1. **Apple Developer → Certificates, Identifiers & Profiles → Identifiers**
-   - Ensure your **App ID** `com.WanderIQ` has **Sign in with Apple** capability enabled.
-   - **+ → Services IDs** → create one, e.g. `com.wanderiq.signin`, description "WanderIQ Web".
-     Enable **Sign in with Apple** → **Configure**:
-     - Primary App ID: `com.WanderIQ`
-     - **Domains:** `wander-iq.vercel.app`
-     - **Return URLs:** `https://lygkrwxrveqdhgdjtctb.supabase.co/auth/v1/callback`
-2. **Keys → +** → name it, enable **Sign in with Apple** → Configure (primary App ID) →
-   **Register** → **download the `.p8` file** (one-time). Note the **Key ID** and your **Team ID**.
-3. **Supabase → Authentication → Providers → Apple** → Enabled → enter:
-   - **Client IDs / Services ID:** `com.wanderiq.signin`
-   - **Team ID**, **Key ID**, and paste the **`.p8` contents** (Supabase mints the
-     client-secret JWT for you). Save.
-4. Reload the web app → **Sign in with Apple**.
+1. **App ID** — Apple Developer → Certificates, Identifiers & Profiles → Identifiers →
+   your **App ID `com.WanderIQ`** → enable **Sign in with Apple** capability → Save.
+   (Leave "Server-to-Server Notification Endpoint" blank — Supabase doesn't use it.)
+2. **Services ID** — Identifiers → **+** → **Services IDs** → e.g. `com.wanderiq.signin`,
+   description "WanderIQ Sign In" → continue/register. Then open it, tick **Sign in with
+   Apple** → **Configure**:
+   - Primary App ID: `com.WanderIQ`
+   - **Domains and Subdomains:** `lygkrwxrveqdhgdjtctb.supabase.co`  ← the SUPABASE domain (NOT the Vercel one; Supabase handles Apple's domain verification)
+   - **Return URLs:** `https://lygkrwxrveqdhgdjtctb.supabase.co/auth/v1/callback`
+   - Save / Done / Continue / Save.
+3. **Key** — Keys → **+** → name "WanderIQ Sign in with Apple" → tick **Sign in with
+   Apple** → Configure (primary App ID `com.WanderIQ`) → Register → **Download the
+   `.p8`** (one chance!). Note the **Key ID** (10 chars).
+4. **Generate the client-secret JWT** — on Supabase's Apple docs page
+   (https://supabase.com/docs/guides/auth/social-login/auth-apple) use the
+   "Generate your secret key" tool: paste your **Account/Team ID**, **Service ID**
+   (`com.wanderiq.signin`), **Key ID**, and the **`.p8`** contents → it outputs a JWT.
+5. **Supabase → Authentication → Providers → Apple** → Enabled:
+   - **Client IDs:** `com.wanderiq.signin,com.WanderIQ`  ← Services ID (web) AND bundle ID (native iOS), comma-separated
+   - **Secret Key (for OAuth):** paste the JWT from step 4
+   - Save.
+6. Reload the web app → **Sign in with Apple**.
 
 > ⚠️ **App Store rule (4.8):** if the app offers Google sign-in, it must ALSO offer
 > a working Sign in with Apple. So if you want social login *on the iOS app*, do
