@@ -57,11 +57,13 @@ Apple web sign-in ("Sign in with Apple" via OAuth) needs a Services ID + a key:
 
 ---
 
-## Supabase URL configuration (already set — just confirm)
+## Supabase URL configuration
 
-**Authentication → URL Configuration:** Site URL = `https://wander-iq.vercel.app`,
-and `https://wander-iq.vercel.app/**` in Redirect URLs. (Set earlier; required so
-the OAuth round-trip returns to the app.)
+**Authentication → URL Configuration:**
+- Site URL = `https://wander-iq.vercel.app`
+- Redirect URLs — add BOTH:
+  - `https://wander-iq.vercel.app/**` (web)
+  - `com.wanderiq://**` (the iOS app's redirect scheme, for Google on iOS)
 
 ---
 
@@ -72,11 +74,22 @@ button should redirect to Google/Apple and, after you authorize, land back on th
 trip list signed in. (I can confirm the redirect handoff; the actual Google/Apple
 login is yours to complete.)
 
-## iOS
+## iOS (the buttons + entitlement are now in the app — commit 301b517)
 
-The iOS app is currently **email-only** (we removed the Apple/Google buttons for
-the App Store launch). To put social sign-in on iOS too, say so and I'll re-add:
-native **Sign in with Apple** (ASAuthorization → `signInWithIdToken`), the
-**Continue with Google** button, the `applesignin` entitlement, and the
-`com.wanderiq` redirect scheme — then bump the build. (Requires the Apple steps
-above, and Apple Sign-In becomes mandatory per 4.8.)
+The iOS app has the native **Sign in with Apple** button + **Continue with Google**,
+the `applesignin` entitlement, and the `com.wanderiq` redirect scheme. Two extra
+provider-config items are needed for iOS on top of the web steps above:
+
+1. **Apple Developer → App ID `com.WanderIQ`**: ensure **Sign in with Apple** is
+   enabled on the App ID itself (the app entitlement requests it; the capability
+   must exist on the App ID, or signing/Sign-in fails).
+2. **Supabase → Authentication → Providers → Apple → Client IDs**: this field must
+   include the iOS **bundle ID `com.WanderIQ`** (for native id-token validation),
+   IN ADDITION to the web **Services ID** `com.wanderiq.signin`. Comma-separate
+   them: `com.wanderiq.signin,com.WanderIQ`.
+3. Google on iOS reuses the same Supabase Google provider; just make sure
+   `com.wanderiq://**` is in the Supabase Redirect URLs (above).
+
+⚠️ Because iOS now offers Google, **a working Sign in with Apple is mandatory**
+(guideline 4.8) for the App Store submission — so complete the Apple steps before
+archiving. Once configured, tell me and I'll run the app to verify both buttons.
