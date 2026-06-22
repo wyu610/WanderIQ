@@ -1,5 +1,6 @@
 import SwiftUI
 import AuthenticationServices
+import CryptoKit
 
 struct AuthView: View {
     @Environment(AuthController.self) private var auth
@@ -7,6 +8,7 @@ struct AuthView: View {
     @State private var password = ""
     @State private var mode: Mode = .signIn
     @State private var busy = false
+    @State private var currentNonce: String?
 
     enum Mode { case signIn, signUp }
 
@@ -35,7 +37,10 @@ struct AuthView: View {
                 }
                 Section("Or") {
                     SignInWithAppleButton(.signIn) { request in
+                        let nonce = randomNonceString()
+                        currentNonce = nonce
                         request.requestedScopes = [.fullName, .email]
+                        request.nonce = sha256(nonce)
                     } onCompletion: { result in
                         Task { await handleApple(result) }
                     }
@@ -81,7 +86,38 @@ struct AuthView: View {
         guard case let .success(authResult) = result,
               let cred = authResult.credential as? ASAuthorizationAppleIDCredential,
               let tokenData = cred.identityToken,
-              let idToken = String(data: tokenData, encoding: .utf8) else { return }
-        await auth.signInWithApple(idToken: idToken, fullName: cred.fullName?.formatted())
+              let idToken = String(data: tokenData, encoding: .utf8),
+              let nonce = currentNonce else { return }
+        await auth.signInWithApple(idToken: idToken, nonce: nonce,
+                                   fullName: cred.fullName?.formatted())
     }
+}
+
+// MARK: - Sign in with Apple nonce (Apple's recommended secure flow)
+
+/// Cryptographically-random nonce; its SHA-256 is sent on the Apple request and
+/// the RAW value is handed to Supabase to verify the returned id-token.
+private func randomNonceString(length: Int = 32) -> String {
+    let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+    var result = ""
+    var remaining = length
+    while remaining > 0 {
+        let randoms: [UInt8] = (0..<16).map { _ in
+            var random: UInt8 = 0
+            let status = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
+            precondition(status == errSecSuccess, "Unable to generate nonce")
+            return random
+        }
+        for random in randoms where remaining > 0 {
+            if random < charset.count {
+                result.append(charset[Int(random)])
+                remaining -= 1
+            }
+        }
+    }
+    return result
+}
+
+private func sha256(_ input: String) -> String {
+    SHA256.hash(data: Data(input.utf8)).map { String(format: "%02x", $0) }.joined()
 }

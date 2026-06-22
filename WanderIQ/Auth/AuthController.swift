@@ -54,11 +54,13 @@ final class AuthController {
         await run { try await self.client.auth.signOut() }
     }
 
-    /// idToken from ASAuthorizationAppleIDCredential (see AuthView).
-    func signInWithApple(idToken: String, fullName: String?) async {
+    /// idToken from ASAuthorizationAppleIDCredential (see AuthView). `nonce` is
+    /// the RAW nonce whose SHA-256 was set on the Apple request — required by
+    /// GoTrue to verify the id-token and prevent replay.
+    func signInWithApple(idToken: String, nonce: String, fullName: String?) async {
         await run {
             _ = try await self.client.auth.signInWithIdToken(
-                credentials: .init(provider: .apple, idToken: idToken))
+                credentials: .init(provider: .apple, idToken: idToken, nonce: nonce))
         }
     }
 

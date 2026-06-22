@@ -57,10 +57,9 @@ targets:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
-        # v2 (accounts + Supabase sync, CloudKit retired) ships publicly as 2.2.
-        # 1.0 (1) only ever went to TestFlight. Build number is 1 for the 2.2
-        # version train; bump CURRENT_PROJECT_VERSION for each re-upload of 2.2.
-        CURRENT_PROJECT_VERSION: 1
+        # v2 ships publicly as 2.2. Build 2: adds the Sign in with Apple nonce
+        # flow after the 2.2(1) App Review rejection (2.1a). Bump for each upload.
+        CURRENT_PROJECT_VERSION: 2
         MARKETING_VERSION: "2.2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   WanderIQUITests:
