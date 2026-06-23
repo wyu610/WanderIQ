@@ -57,10 +57,11 @@ targets:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.10"
-        # v2 ships publicly as 2.2. Build 2: adds the Sign in with Apple nonce
-        # flow after the 2.2(1) App Review rejection (2.1a). Bump for each upload.
-        CURRENT_PROJECT_VERSION: 2
-        MARKETING_VERSION: "2.2"
+        # Public release. 2.3 (1) is the resubmission after the 2.2(1) rejection —
+        # includes the Sign in with Apple nonce fix + the date-sync fix.
+        # Bump CURRENT_PROJECT_VERSION for each new upload of the same version.
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "2.3"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   WanderIQUITests:
     type: bundle.ui-testing
